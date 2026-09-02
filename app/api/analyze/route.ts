@@ -4,15 +4,17 @@
 // Chrome extension call this same contract (Part 14 of the SugarShield 2.0
 // goal) so there is a single source of truth for how a product gets scored.
 //
-// Production model: the deterministic hybrid rules engine in
-// lib/riskEngine.ts. A fine-tuned transformer was trained and benchmarked
-// offline (see ml/results/benchmark.json) but is not called here — there is
-// no persistent process in this Vercel deployment to host it. See the
-// README "Why the fine-tuned model isn't live" section for the full
-// reasoning. If SUGARSHIELD_MODEL_ENDPOINT is set, this route will call out
-// to an externally hosted model and reconcile its output with the
-// deterministic layer (deterministic detections always win — see
-// reconcileWithModel below) instead of ignoring the model entirely.
+// Production model: the deterministic rules engine in lib/riskEngine.ts. A
+// small model was fine-tuned and benchmarked offline (see
+// ml/results/benchmark.json, and ml/evaluate.py for the hybrid
+// reconciliation logic that combines it with this same rule engine) but is
+// NOT called here — there is no persistent process in this Vercel
+// deployment to host a loaded checkpoint, and the benchmark itself doesn't
+// justify it yet (see the README's "Benchmark" section). If a hosted
+// inference endpoint is ever stood up for the model, this route would need
+// the same reconciliation ml/evaluate.py already implements (rule-engine
+// detections are authoritative; the model can only add signal) ported in
+// here — that does not exist yet, so don't assume it does.
 
 import { NextResponse } from 'next/server';
 import { analyzeIngredientsText, EvalMode, RiskEngineResult } from '@/lib/riskEngine';

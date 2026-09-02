@@ -1,0 +1,800 @@
+[
+  {
+    "id": "gold_v1_e001",
+    "product_name": "Classic Cola",
+    "ingredients_raw": "Carbonated Water, High Fructose Corn Syrup, Caramel Color, Phosphoric Acid, Natural Flavors, Caffeine.",
+    "gold": {
+      "risk_level": "HIGH",
+      "detected_sugars": [
+        "high fructose corn syrup"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "high fructose corn syrup"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (high fructose corn syrup).",
+      "latency_ms": 0.2009868621826172,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 287.3802185058594,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "high fructose corn syrup"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (high fructose corn syrup).",
+      "latency_ms": 287.581205368042,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e002",
+    "product_name": "Fruit Punch Pouch",
+    "ingredients_raw": "Water, Apple Juice Concentrate, Ascorbic Acid, Citric Acid, Natural Flavors.",
+    "gold": {
+      "risk_level": "HIGH",
+      "detected_sugars": [
+        "apple juice concentrate"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": true,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "apple juice concentrate"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (apple juice concentrate); includes a sugar source not obviously named \"sugar\".",
+      "latency_ms": 0.14090538024902344,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 238.64388465881348,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": true,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "apple juice concentrate"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (apple juice concentrate); includes a sugar source not obviously named \"sugar\".",
+      "latency_ms": 238.7847900390625,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e003",
+    "product_name": "Rolled Oats",
+    "ingredients_raw": "100% Whole Grain Rolled Oats.",
+    "gold": {
+      "risk_level": "SAFE",
+      "detected_sugars": [],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 0.09107589721679688,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 241.77289009094238,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 241.86396598815918,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e004",
+    "product_name": "Smoky BBQ Sauce",
+    "ingredients_raw": "Tomato Puree, High Fructose Corn Syrup, Molasses, Vinegar, Salt, Spices.",
+    "gold": {
+      "risk_level": "HIGH",
+      "detected_sugars": [
+        "high fructose corn syrup",
+        "molasses"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "high fructose corn syrup",
+        "molasses"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (high fructose corn syrup, molasses).",
+      "latency_ms": 0.133514404296875,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 244.31276321411133,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "high fructose corn syrup",
+        "molasses"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (high fructose corn syrup, molasses).",
+      "latency_ms": 244.4462776184082,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e005",
+    "product_name": "Zero Sugar Cola",
+    "ingredients_raw": "Carbonated Water, Caramel Color, Aspartame, Phosphoric Acid, Potassium Benzoate, Natural Flavors, Caffeine.",
+    "gold": {
+      "risk_level": "LOW",
+      "detected_sugars": [],
+      "artificial_sweeteners": [
+        "aspartame"
+      ]
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "LOW",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": true,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [
+        "aspartame"
+      ],
+      "explanation": "Contains non-nutritive sweetener (aspartame).",
+      "latency_ms": 0.1666545867919922,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 237.49542236328125,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "LOW",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": true,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [
+        "aspartame"
+      ],
+      "explanation": "Contains non-nutritive sweetener (aspartame).",
+      "latency_ms": 237.66207695007324,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e006",
+    "product_name": "Power Bar",
+    "ingredients_raw": "Soy Protein Isolate, Brown Rice Syrup, Cane Sugar, Palm Oil, Cocoa.",
+    "gold": {
+      "risk_level": "VERY_HIGH",
+      "detected_sugars": [
+        "brown rice syrup",
+        "cane sugar"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "VERY_HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": true,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "brown rice syrup",
+        "cane sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (brown rice syrup, cane sugar); includes a sugar source not obviously named \"sugar\".",
+      "latency_ms": 0.18095970153808594,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 242.997407913208,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "VERY_HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": true,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "brown rice syrup",
+        "cane sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (brown rice syrup, cane sugar); includes a sugar source not obviously named \"sugar\".",
+      "latency_ms": 243.1783676147461,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e007",
+    "product_name": "Nonfat Greek Yogurt",
+    "ingredients_raw": "Cultured Pasteurized Nonfat Milk.",
+    "gold": {
+      "risk_level": "SAFE",
+      "detected_sugars": [],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e.g. lactose or whole-fruit sugar) may be present.",
+      "latency_ms": 0.06747245788574219,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e. lactose or whole-fruit sugar) may be present.",
+      "latency_ms": 271.5771198272705,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No added sugar or artificial sweeteners detected. Naturally occurring sugars (e. lactose or whole-fruit sugar) may be present.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e.g. lactose or whole-fruit sugar) may be present.",
+      "latency_ms": 271.64459228515625,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e008",
+    "product_name": "Sweetened Almond Milk",
+    "ingredients_raw": "Almondmilk (Filtered Water, Almonds), Cane Sugar, Calcium Carbonate, Sea Salt, Natural Flavors.",
+    "gold": {
+      "risk_level": "MODERATE",
+      "detected_sugars": [
+        "cane sugar"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "cane sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (cane sugar).",
+      "latency_ms": 0.17070770263671875,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [
+        "sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (sugar).",
+      "latency_ms": 227.5838851928711,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"MODERATE\",\"contains_added_sugar\":true,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[\"sugar\"],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"1 added sugar source detected (sugar).\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "cane sugar",
+        "sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (cane sugar).",
+      "latency_ms": 227.7545928955078,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e009",
+    "product_name": "Tomato Ketchup",
+    "ingredients_raw": "Tomato Concentrate, Distilled Vinegar, High Fructose Corn Syrup, Corn Syrup, Salt, Spice, Onion Powder.",
+    "gold": {
+      "risk_level": "MODERATE",
+      "detected_sugars": [
+        "high fructose corn syrup",
+        "corn syrup"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "high fructose corn syrup",
+        "corn syrup"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (high fructose corn syrup, corn syrup).",
+      "latency_ms": 0.16427040100097656,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 233.56866836547852,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "high fructose corn syrup",
+        "corn syrup"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (high fructose corn syrup, corn syrup).",
+      "latency_ms": 233.7329387664795,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e010",
+    "product_name": "Rice Snaps",
+    "ingredients_raw": "Rice, Expeller Pressed Canola Oil, Salt, Sugar.",
+    "gold": {
+      "risk_level": "MODERATE",
+      "detected_sugars": [
+        "sugar"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (sugar).",
+      "latency_ms": 0.12302398681640625,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 236.5553379058838,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (sugar).",
+      "latency_ms": 236.6783618927002,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e011",
+    "product_name": "Enhanced Water",
+    "ingredients_raw": "Reverse Osmosis Water, Crystalline Fructose, Cane Sugar, Vitamins.",
+    "gold": {
+      "risk_level": "HIGH",
+      "detected_sugars": [
+        "crystalline fructose",
+        "cane sugar"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "crystalline fructose",
+        "cane sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (crystalline fructose, cane sugar).",
+      "latency_ms": 0.11038780212402344,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 228.81150245666504,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "crystalline fructose",
+        "cane sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (crystalline fructose, cane sugar).",
+      "latency_ms": 228.92189025878906,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e012",
+    "product_name": "Honey Granola",
+    "ingredients_raw": "Whole Grain Oats, Honey, Canola Oil, Molasses.",
+    "gold": {
+      "risk_level": "HIGH",
+      "detected_sugars": [
+        "honey",
+        "molasses"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "honey",
+        "molasses"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (honey, molasses).",
+      "latency_ms": 0.10013580322265625,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [
+        "high fructose corn syrup"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (high fructose corn syrup).",
+      "latency_ms": 263.17787170410156,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"MODERATE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[\"high fructose corn syrup\"],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"1 added sugar source detected (high fructose corn syrup).\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "HIGH",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "honey",
+        "molasses",
+        "high fructose corn syrup"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "2 added sugar sources detected (honey, molasses).",
+      "latency_ms": 263.2780075073242,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e013",
+    "product_name": "Pure Coconut Water",
+    "ingredients_raw": "100% Coconut Water.",
+    "gold": {
+      "risk_level": "SAFE",
+      "detected_sugars": [],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e.g. lactose or whole-fruit sugar) may be present.",
+      "latency_ms": 0.07796287536621094,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 242.83695220947266,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e.g. lactose or whole-fruit sugar) may be present.",
+      "latency_ms": 242.91491508483887,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e014",
+    "product_name": "Marinara",
+    "ingredients_raw": "Tomatoes, Onions, Olive Oil, Salt, Basil, Sugar.",
+    "gold": {
+      "risk_level": "MODERATE",
+      "detected_sugars": [
+        "sugar"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (sugar).",
+      "latency_ms": 0.12302398681640625,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 233.51335525512695,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (sugar).",
+      "latency_ms": 233.63637924194336,
+      "valid_json": true
+    }
+  },
+  {
+    "id": "gold_v1_e015",
+    "product_name": "Raspberry Vinaigrette",
+    "ingredients_raw": "Water, Raspberry Juice Concentrate, Sugar, Vinegar.",
+    "gold": {
+      "risk_level": "MODERATE",
+      "detected_sugars": [
+        "sugar"
+      ],
+      "artificial_sweeteners": []
+    },
+    "rule_baseline_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (sugar).",
+      "latency_ms": 0.16045570373535156,
+      "valid_json": true
+    },
+    "finetuned_model_prediction": {
+      "riskLevel": "SAFE",
+      "containsAddedSugar": false,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": true,
+      "detectedSugars": [],
+      "artificialSweeteners": [],
+      "explanation": "No added sugar-related ingredients detected in the provided ingredient list.",
+      "latency_ms": 257.8592300415039,
+      "valid_json": true,
+      "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No added sugar-related ingredients detected in the provided ingredient list.\"}"
+    },
+    "hybrid_prediction": {
+      "riskLevel": "MODERATE",
+      "containsAddedSugar": true,
+      "containsHiddenSugar": false,
+      "containsArtificialSweetener": false,
+      "containsNaturalSugar": false,
+      "detectedSugars": [
+        "sugar"
+      ],
+      "artificialSweeteners": [],
+      "explanation": "1 added sugar source detected (sugar).",
+      "latency_ms": 258.01968574523926,
+      "valid_json": true
+    }
+  }
+]
