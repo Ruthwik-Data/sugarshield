@@ -1,0 +1,5 @@
+# Only needed for the merge -> GGUF -> Ollama export step (ml/LOCAL_QWEN_FINETUNE.md).
+# Not needed for training or evaluation (ml/requirements.txt covers those).
+gguf
+sentencepiece
+protobuf

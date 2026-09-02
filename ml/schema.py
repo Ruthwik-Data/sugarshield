@@ -29,7 +29,18 @@ def build_prompt(product_name, ingredients_raw, nutrition=None):
 
 
 def build_target(record):
-    """Builds the compact JSON completion string the model is trained to produce."""
+    """Builds the compact JSON completion string the model is trained to produce.
+
+    Deliberately does NOT append an EOS marker — the caller appends whichever
+    EOS token belongs to the tokenizer actually in use (see train.py's
+    tokenize_examples). This keeps the schema tokenizer-agnostic: the
+    from-scratch pipeline's custom BPE tokenizer defines its own EOS spelling
+    ("<|end|>", see EOS below), while a real pretrained tokenizer (e.g.
+    Qwen2.5's, for the --use_lora path) has its own eos_token that must be
+    used instead — a foreign "<|end|>" string would just get split into
+    ordinary subword pieces by a tokenizer that never saw it as a special
+    token.
+    """
     payload = {
         "risk_level": record["risk_level"],
         "contains_added_sugar": bool(record["contains_added_sugar"]),
@@ -41,7 +52,7 @@ def build_target(record):
         "confidence": record.get("model_confidence", 0.9 if record.get("verified") else 0.7),
         "explanation": (record.get("explanation") or "").strip()[:220],
     }
-    return json.dumps(payload, separators=(",", ":")) + EOS
+    return json.dumps(payload, separators=(",", ":"))
 
 
 def extract_first_json(text):

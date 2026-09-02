@@ -15,12 +15,11 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(__file__))
-from schema import build_prompt, extract_first_json, EOS  # noqa: E402
+from schema import build_prompt, extract_first_json  # noqa: E402
 
 
 def load_model(checkpoint_dir):
-    import torch
-    from transformers import AutoModelForCausalLM, PreTrainedTokenizerFast
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
     if not os.path.isdir(checkpoint_dir) or not os.listdir(checkpoint_dir):
         raise FileNotFoundError(
@@ -28,17 +27,28 @@ def load_model(checkpoint_dir):
             "train.py first — evaluate.py/infer.py must never fall back to an untrained model."
         )
 
-    tokenizer_file = os.path.join(checkpoint_dir, "tokenizer.json")
-    if not os.path.exists(tokenizer_file):
-        raise FileNotFoundError(f"tokenizer.json missing from {checkpoint_dir}")
+    # AutoTokenizer works uniformly here: train.py's tokenizer.save_pretrained(output_dir)
+    # persists whichever tokenizer was actually used (our custom BPE one for the
+    # from-scratch path, or Qwen2.5's own for a --use_lora checkpoint) with its
+    # real special-token config, so nothing here needs to hardcode either one's spelling.
+    # local_files_only=True is required, not cosmetic: without it, from_pretrained on a
+    # pure-local checkpoint dir still probes the Hub for updates, which hangs for a long
+    # time (rather than failing fast) against a network egress proxy that hard-blocks
+    # huggingface.co at the TCP level.
+    tokenizer = AutoTokenizer.from_pretrained(checkpoint_dir, local_files_only=True)
 
-    tokenizer = PreTrainedTokenizerFast(tokenizer_file=tokenizer_file)
-    tokenizer.pad_token = "<pad>"
-    tokenizer.bos_token = "<bos>"
-    tokenizer.eos_token = EOS
-    tokenizer.unk_token = "<unk>"
+    is_unmerged_lora_adapter = os.path.exists(os.path.join(checkpoint_dir, "adapter_config.json"))
+    if is_unmerged_lora_adapter:
+        # train.py's --use_lora path saves only the (small) adapter, not the
+        # full base model — AutoPeftModelForCausalLM loads the base model
+        # named in adapter_config.json's base_model_name_or_path and applies
+        # the adapter on top, so this evaluates the actual fine-tuned
+        # behavior without requiring a separate merge step first.
+        from peft import AutoPeftModelForCausalLM
 
-    model = AutoModelForCausalLM.from_pretrained(checkpoint_dir)
+        model = AutoPeftModelForCausalLM.from_pretrained(checkpoint_dir, local_files_only=True)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(checkpoint_dir, local_files_only=True)
     model.eval()
     return model, tokenizer
 
@@ -59,24 +69,22 @@ def generate_json(model, tokenizer, product_name, ingredients_raw, nutrition=Non
 
     start = time.time()
     with torch.no_grad():
-        eos_id = tokenizer.convert_tokens_to_ids(EOS)
         output_ids = model.generate(
             **inputs,
             max_new_tokens=safe_new_tokens,
             do_sample=False,
             num_beams=1,
-            pad_token_id=tokenizer.pad_token_id,
-            eos_token_id=eos_id if eos_id is not None and eos_id >= 0 else None,
+            pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.eos_token_id,
+            eos_token_id=tokenizer.eos_token_id,
         )
     latency_ms = (time.time() - start) * 1000
 
-    generated = tokenizer.decode(output_ids[0][inputs["input_ids"].shape[1]:], skip_special_tokens=False)
-    generated_clean = generated.replace(EOS, "")
-    parsed = extract_first_json(generated_clean)
+    generated = tokenizer.decode(output_ids[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+    parsed = extract_first_json(generated)
 
     return {
         "prompt": prompt,
-        "raw_output": generated_clean.strip(),
+        "raw_output": generated.strip(),
         "parsed": parsed,
         "latency_ms": latency_ms,
     }

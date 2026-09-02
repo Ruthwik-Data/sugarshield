@@ -11,12 +11,17 @@ running it in an environment where a pretrained checkpoint IS reachable
 with peft/LoRA instead of training from scratch. Actually executed runs in
 the reference environment always take the from-scratch path.
 
-Usage (from-scratch, the path actually run):
+Usage (from-scratch, the path actually run in the reference environment):
     python3 ml/train.py --prepared_dir ./prepared --output_dir ./checkpoints/sugarshield-v1
 
-Usage (LoRA on a pretrained base, if one is reachable in your environment):
-    python3 ml/train.py --prepared_dir ./prepared --output_dir ./checkpoints/sugarshield-v1 \
-        --base_model <hub-id-or-local-path> --use_lora
+Usage (LoRA on a pretrained base, e.g. Qwen2.5-1.5B-Instruct on a Mac with
+Hugging Face Hub reachable — see ml/LOCAL_QWEN_FINETUNE.md for the full
+checklist including merge + GGUF/Ollama export):
+    python3 ml/train.py --prepared_dir ./prepared --output_dir ./checkpoints/sugarshield-qwen2.5-1.5b \
+        --use_lora --base_model Qwen/Qwen2.5-1.5B-Instruct \
+        --device auto --dtype auto --gradient_checkpointing \
+        --lora_r 8 --lora_alpha 16 --lora_target_modules q_proj,v_proj \
+        --epochs 1 --batch_size 2 --grad_accum 8
 """
 
 import argparse
@@ -71,11 +76,20 @@ def build_scratch_model(vocab_size, seq_len, n_layer, n_embd, n_head):
 
 
 def tokenize_examples(pairs, tokenizer, seq_len):
-    """Tokenizes prompt+target, masking the prompt portion out of the loss."""
+    """Tokenizes prompt+target, masking the prompt portion out of the loss.
+
+    Appends the tokenizer's OWN eos_token_id after the target (never a
+    hardcoded string) — see schema.build_target's docstring for why: a
+    pretrained tokenizer (Qwen2.5's, for --use_lora) has its own eos_token
+    that must be used verbatim, not the from-scratch pipeline's "<|end|>".
+    """
+    eos_id = tokenizer.eos_token_id
     input_ids_list, labels_list, attn_list = [], [], []
     for p in pairs:
         prompt_ids = tokenizer(p["prompt"], add_special_tokens=False)["input_ids"]
         target_ids = tokenizer(p["target"], add_special_tokens=False)["input_ids"]
+        if eos_id is not None:
+            target_ids = target_ids + [eos_id]
         ids = (prompt_ids + target_ids)[:seq_len]
         labels = ([-100] * len(prompt_ids) + target_ids)[:seq_len]
         attn = [1] * len(ids)
@@ -89,6 +103,32 @@ def tokenize_examples(pairs, tokenizer, seq_len):
         labels_list.append(labels)
         attn_list.append(attn)
     return {"input_ids": input_ids_list, "labels": labels_list, "attention_mask": attn_list}
+
+
+def resolve_device(requested):
+    import torch
+
+    if requested != "auto":
+        return requested
+    if torch.cuda.is_available():
+        return "cuda"
+    if getattr(torch.backends, "mps", None) is not None and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
+def resolve_dtype(requested, device):
+    import torch
+
+    mapping = {"float32": torch.float32, "float16": torch.float16, "bfloat16": torch.bfloat16}
+    if requested != "auto":
+        return mapping[requested]
+    # CPU training in fp16/bf16 is generally unsupported/slow in PyTorch; the
+    # from-scratch path always wants fp32. On MPS/CUDA, bf16 halves memory
+    # and is the precision Qwen2.5 was itself trained/released in.
+    if device in ("mps", "cuda"):
+        return torch.bfloat16
+    return torch.float32
 
 
 def main():
@@ -106,16 +146,34 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--max_train_examples", type=int, default=0, help="0 = use all")
     ap.add_argument("--use_lora", action="store_true")
-    ap.add_argument("--base_model", default=None, help="Only used with --use_lora")
+    ap.add_argument("--base_model", default=None, help="Only used with --use_lora, e.g. Qwen/Qwen2.5-1.5B-Instruct or a local path")
+    ap.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
+    ap.add_argument("--dtype", default="auto", choices=["auto", "float32", "float16", "bfloat16"])
+    ap.add_argument("--gradient_checkpointing", action="store_true", help="Trade compute for memory; recommended on Mac for --use_lora")
+    ap.add_argument("--lora_r", type=int, default=8)
+    ap.add_argument("--lora_alpha", type=int, default=16)
+    ap.add_argument("--lora_dropout", type=float, default=0.05)
+    ap.add_argument(
+        "--lora_target_modules",
+        default="q_proj,v_proj",
+        help="Comma-separated module names. Qwen2.5 (LLaMA-style attention): q_proj,v_proj for a small "
+        "first run; add k_proj,o_proj (and gate_proj,up_proj,down_proj for the MLP) to scale up.",
+    )
+    ap.add_argument(
+        "--results_dir",
+        default=None,
+        help="Where to write training_run.json. Defaults to ml/results/ (the shipped from-scratch run's "
+        "location) — pass a distinct directory (e.g. ./results_qwen) for any other run so you don't "
+        "overwrite that committed baseline record.",
+    )
     args = ap.parse_args()
 
     import torch
     from transformers import Trainer, TrainingArguments, set_seed
 
     set_seed(args.seed)
-
-    tokenizer_dir = os.path.join(args.prepared_dir, "tokenizer")
-    tokenizer = build_tokenizer(tokenizer_dir)
+    device = resolve_device(args.device)
+    dtype = resolve_dtype(args.dtype, device)
 
     train_pairs = load_jsonl(os.path.join(args.prepared_dir, "train.jsonl"))
     val_pairs = load_jsonl(os.path.join(args.prepared_dir, "validation.jsonl"))
@@ -128,21 +186,41 @@ def main():
 
     method = "full_parameter_from_scratch"
     base_model_name = f"sugarshield-tiny-gpt2 (from scratch, {args.n_layer}L/{args.n_embd}d/{args.n_head}h)"
+    lora_target_modules = None
 
     if args.use_lora and args.base_model:
         from peft import LoraConfig, get_peft_model
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         tokenizer = AutoTokenizer.from_pretrained(args.base_model)
-        model = AutoModelForCausalLM.from_pretrained(args.base_model)
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+
+        model = AutoModelForCausalLM.from_pretrained(args.base_model, torch_dtype=dtype)
+        model.to(device)
+
+        if args.gradient_checkpointing:
+            model.gradient_checkpointing_enable()
+            model.enable_input_require_grads()
+
+        lora_target_modules = [m.strip() for m in args.lora_target_modules.split(",") if m.strip()]
         lora_cfg = LoraConfig(
-            r=8, lora_alpha=16, lora_dropout=0.05, bias="none", task_type="CAUSAL_LM"
+            r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=lora_target_modules,
         )
         model = get_peft_model(model, lora_cfg)
+        model.print_trainable_parameters()
         method = "lora"
         base_model_name = args.base_model
     else:
+        tokenizer_dir = os.path.join(args.prepared_dir, "tokenizer")
+        tokenizer = build_tokenizer(tokenizer_dir)
         model = build_scratch_model(tokenizer.vocab_size, args.seq_len, args.n_layer, args.n_embd, args.n_head)
+        model.to(device)
 
     n_params = sum(p.numel() for p in model.parameters())
     n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -160,6 +238,11 @@ def main():
 
     os.makedirs(args.output_dir, exist_ok=True)
 
+    # bf16=True here tells the Trainer to autocast the forward/backward pass;
+    # the model's own weights were already loaded in `dtype` above via
+    # torch_dtype= (for --use_lora) — these two settings should normally
+    # match. fp16 uses a loss-scaler that historically has NaN issues on
+    # MPS, so it's only enabled for CUDA.
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         num_train_epochs=args.epochs,
@@ -175,7 +258,8 @@ def main():
         save_total_limit=1,
         report_to=[],
         seed=args.seed,
-        use_cpu=True,
+        use_cpu=(device == "cpu"),
+        bf16=(dtype == torch.bfloat16 and device != "mps"),
         dataloader_num_workers=0,
     )
 
@@ -186,7 +270,10 @@ def main():
         eval_dataset=val_ds,
     )
 
-    hardware = f"{platform.processor() or platform.machine()}, {os.cpu_count()} vCPUs, CPU-only (no CUDA GPU available)"
+    if device == "cpu":
+        hardware = f"{platform.processor() or platform.machine()}, {os.cpu_count()} vCPUs, CPU-only (no GPU available)"
+    else:
+        hardware = f"{platform.processor() or platform.machine()}, device={device}, dtype={dtype}"
 
     start = time.time()
     train_result = trainer.train()
@@ -220,10 +307,14 @@ def main():
         "effective_batch_size": args.batch_size * args.grad_accum,
         "learning_rate": args.lr,
         "sequence_length": args.seq_len,
-        "lora_rank": 8 if method == "lora" else None,
-        "lora_alpha": 16 if method == "lora" else None,
-        "quantization": "none (fp32 CPU)",
-        "target_modules": "n/a (full-parameter training)" if method != "lora" else "q_proj,v_proj",
+        "lora_rank": args.lora_r if method == "lora" else None,
+        "lora_alpha": args.lora_alpha if method == "lora" else None,
+        "lora_dropout": args.lora_dropout if method == "lora" else None,
+        "device": device,
+        "dtype": str(dtype),
+        "quantization": "none",
+        "target_modules": "n/a (full-parameter training)" if method != "lora" else ",".join(lora_target_modules),
+        "gradient_checkpointing": bool(args.gradient_checkpointing) if method == "lora" else False,
         "random_seed": args.seed,
         "hardware": hardware,
         "train_runtime_seconds": round(duration_s, 1),
@@ -233,8 +324,12 @@ def main():
         "trained_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
 
-    results_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "results"))
+    results_dir = args.results_dir or os.path.normpath(os.path.join(os.path.dirname(__file__), "results"))
     os.makedirs(results_dir, exist_ok=True)
+    # Also colocate a copy with the checkpoint itself, so each run's own
+    # metadata travels with it regardless of --results_dir.
+    with open(os.path.join(args.output_dir, "training_run.json"), "w", encoding="utf-8") as f:
+        json.dump(run_info, f, indent=2)
     with open(os.path.join(results_dir, "training_run.json"), "w", encoding="utf-8") as f:
         json.dump(run_info, f, indent=2)
 
