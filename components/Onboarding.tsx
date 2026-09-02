@@ -30,7 +30,7 @@ export default function Onboarding() {
             >
                 <h2 className="text-lg font-semibold text-ink mb-2">See beyond the label.</h2>
                 <p className="text-sm text-zinc-500 max-w-xs mx-auto leading-relaxed">
-                    Added sugars often hide behind names you don't recognize.
+                    Added sugars often hide behind names you don&apos;t recognize.
                     <br /><span className="text-cocoa font-medium">SugarShield helps you spot them instantly.</span>
                 </p>
             </motion.div>

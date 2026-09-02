@@ -2,13 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ClassificationResult, ProductData } from '@/lib/types';
-import { classifyProduct } from '@/lib/classifier';
+import { ProductData } from '@/lib/types';
+import { analyzeIngredients, SugarShieldResult } from '@/lib/apiClient';
 import { trackEvent } from '@/lib/analytics';
 import SkeletonLoader from './SkeletonLoader';
 
+function riskToVerdict(riskLevel: string): 'PASS' | 'WARN' | 'FAIL' {
+  if (riskLevel === 'SAFE') return 'PASS';
+  if (riskLevel === 'LOW' || riskLevel === 'MODERATE') return 'WARN';
+  return 'FAIL';
+}
+
 interface LinkTabProps {
-  onResult: (result: ClassificationResult) => void;
+  onResult: (result: SugarShieldResult) => void;
   demoMode?: boolean;
 }
 
@@ -47,7 +53,7 @@ export default function LinkTab({ onResult, demoMode }: LinkTabProps) {
 
     // specific check for manual entry flow
     if (needsIngredients) {
-      handleManualSubmit();
+      await handleManualSubmit();
       return;
     }
 
@@ -80,46 +86,55 @@ export default function LinkTab({ onResult, demoMode }: LinkTabProps) {
 
       const productData: ProductData = data;
 
-      const input = {
-        url: url,
-        // Convert nulls to undefined to satisfy optional type
-        ingredientsText: productData.ingredientsText || undefined,
-        productName: productData.name || undefined,
-        source: productData.source || 'LINK',
-      };
+      if (!productData.ingredientsText) {
+        setNeedsIngredients(true);
+        setError('We couldn’t reliably find the ingredients on this page. Please paste them below for an accurate analysis.');
+        setIsLoading(false);
+        return;
+      }
 
-      const classification = classifyProduct(input);
-      trackEvent('link', classification.verdict || 'WARN');
-      onResult(classification);
+      const result = await analyzeIngredients(productData.ingredientsText, {
+        productName: productData.name || undefined,
+      });
+      trackEvent('link', riskToVerdict(result.riskLevel));
+      onResult({ ...result, ingredientsText: productData.ingredientsText, productName: productData.name || undefined });
     } catch (err: any) {
       console.error('Link extraction error:', err);
       // Fallback for demo if API isn't real/setup
       onResult({
-        classification: 'WARN',
+        riskLevel: 'MODERATE',
+        score: 40,
+        containsAddedSugar: false,
+        containsHiddenSugar: false,
+        containsArtificialSweetener: false,
+        containsNaturalSugar: false,
+        detectedSugars: [],
+        artificialSweeteners: [],
         confidence: 0.4,
-        reasons: ['Link analysis failed. Try scanning or uploading.'],
-        matchedTerms: [],
-        notes: 'Could not access the product page.',
+        explanation: 'Link analysis failed. Try scanning, uploading, or pasting ingredients directly.',
+        model: 'sugarshield-rules-v2',
+        latencyMs: 0,
+        mode: 'STRICT',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleManualSubmit = () => {
+  const handleManualSubmit = async () => {
     if (!manualIngredients.trim()) {
       setError('Please paste the ingredients list.');
       return;
     }
 
-    const classification = classifyProduct({
-      url: url,
-      ingredientsText: manualIngredients,
-      source: 'LINK_MANUAL',
-    });
-
-    trackEvent('link_manual', classification.verdict || 'WARN');
-    onResult(classification);
+    setIsLoading(true);
+    try {
+      const result = await analyzeIngredients(manualIngredients);
+      trackEvent('link_manual', riskToVerdict(result.riskLevel));
+      onResult({ ...result, ingredientsText: manualIngredients });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading) {

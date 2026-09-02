@@ -1,0 +1,147 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  width: 360px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #ffffff;
+  color: #111827;
+}
+
+.ss-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.ss-logo {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+#ss-root {
+  padding: 14px 16px 6px;
+}
+
+#ss-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 10px 0 4px;
+  color: #374151;
+}
+#ss-form label:first-of-type {
+  margin-top: 0;
+}
+#ss-form .ss-optional {
+  font-weight: 400;
+  color: #9ca3af;
+}
+#ss-form .ss-required {
+  color: #dc2626;
+}
+
+#ss-form input[type="text"],
+#ss-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+}
+#ss-form input[type="text"]:focus,
+#ss-form textarea:focus {
+  outline: 2px solid #0d9488;
+  outline-offset: 1px;
+  border-color: #0d9488;
+}
+
+.ss-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.ss-radio {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 400 !important;
+  margin: 0 !important;
+}
+
+#ss-analyze-btn,
+.ss-secondary {
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+#ss-analyze-btn {
+  background: #0d9488;
+  color: #ffffff;
+}
+#ss-analyze-btn:hover:not(:disabled) {
+  background: #0f766e;
+}
+#ss-analyze-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.ss-secondary {
+  background: #f3f4f6;
+  color: #111827;
+}
+.ss-secondary:hover {
+  background: #e5e7eb;
+}
+
+.ss-status {
+  margin-top: 10px;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+.ss-status--loading {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.ss-status--error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.ss-footer {
+  padding: 6px 16px 12px;
+  font-size: 10px;
+  color: #9ca3af;
+  min-height: 12px;
+}
+
+/* --- result card (kept in sync with content.css) --- */
+.ss-card { position: relative; }
+.ss-product-name { font-weight: 600; margin-bottom: 4px; font-size: 13px; }
+.ss-score-row { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; }
+.ss-score { font-size: 34px; font-weight: 700; line-height: 1; }
+.ss-score-unit { font-size: 14px; font-weight: 400; color: #6b7280; margin-left: 2px; }
+.ss-badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.03em; }
+.ss-explanation { font-size: 13px; line-height: 1.45; color: #374151; margin: 6px 0; }
+.ss-flags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.ss-flag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #f3f4f6; color: #6b7280; }
+.ss-flag--on { background: #fee2e2; color: #991b1b; }
+.ss-list-block { margin: 8px 0; }
+.ss-list-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; margin-bottom: 2px; }
+.ss-list { margin: 0; padding-left: 18px; font-size: 13px; }
+.ss-list-empty { font-size: 13px; color: #9ca3af; }
+.ss-meta { font-size: 11px; color: #9ca3af; margin-top: 8px; border-top: 1px solid #e5e7eb; padding-top: 6px; }
+.ss-loading, .ss-error { font-size: 13px; padding: 10px 0; }
+.ss-error { color: #b91c1c; }

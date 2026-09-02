@@ -49,7 +49,9 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
                 <div className="bg-paper rounded-2xl p-5 shadow-sm border border-black/5">
                   <h3 className="text-sm font-semibold text-ink mb-2">OpenAI Integration</h3>
                   <p className="text-xs text-zinc-500 mb-4 leading-relaxed">
-                    SugarShield uses AI for label analysis. The app works without it using basic barcode scanning.
+                    SugarShield uses OpenAI only to read the ingredients text out of a photo (OCR). All sugar-risk
+                    scoring is done by SugarShield&apos;s own deterministic engine, not a third-party model — barcode
+                    scanning and pasted-link analysis work fully without this key.
                   </p>
                   <div className="bg-subtle rounded-xl p-3 border border-black/5">
                     <div className="flex items-center gap-2 mb-1">
@@ -80,7 +82,7 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
 
                 <div className="pt-6 border-t border-black/5">
                   <p className="text-xs text-zinc-400 text-center">
-                    SugarShield v1.0 • Designed for Health
+                    SugarShield 2.0 • Designed for Health
                   </p>
                 </div>
               </div>

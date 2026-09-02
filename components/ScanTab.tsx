@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ClassificationResult } from '@/lib/types';
+import { SugarShieldResult, getStoredMode } from '@/lib/apiClient';
 
 interface ScanTabProps {
-  onResult: (result: ClassificationResult) => void;
+  onResult: (result: SugarShieldResult) => void;
   demoMode?: boolean;
 }
 
@@ -70,7 +70,7 @@ export default function ScanTab({ onResult, demoMode }: ScanTabProps) {
       const res = await fetch('/api/vision-parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageDataUrl }),
+        body: JSON.stringify({ imageDataUrl, mode: getStoredMode() }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -79,19 +79,27 @@ export default function ScanTab({ onResult, demoMode }: ScanTabProps) {
         throw new Error(data?.error || 'Vision parse failed');
       }
 
-      onResult(data);
+      onResult({ ...data, ingredientsText: data?.extracted?.ingredientsText });
     } catch (e: any) {
       console.error(e);
       const msg = String(e?.message ?? e);
       setError(msg);
       // Fallback result so user isn't stuck
       onResult({
-        classification: 'WARN',
+        riskLevel: 'MODERATE',
+        score: 40,
+        containsAddedSugar: false,
+        containsHiddenSugar: false,
+        containsArtificialSweetener: false,
+        containsNaturalSugar: false,
+        detectedSugars: [],
+        artificialSweeteners: [],
         confidence: 0.2,
-        reasons: ['Scan process failed: ' + msg],
-        matchedTerms: [],
-        notes: 'Camera capture worked, but analysis failed.',
-      });
+        explanation: 'Scan process failed: ' + msg,
+        model: 'sugarshield-rules-v2',
+        latencyMs: 0,
+        mode: getStoredMode(),
+      } as SugarShieldResult);
     } finally {
       setScanning(false);
     }
@@ -101,26 +109,22 @@ export default function ScanTab({ onResult, demoMode }: ScanTabProps) {
     setScanning(true);
     setTimeout(() => {
       onResult({
-        classification: 'WARN',
+        riskLevel: 'VERY_HIGH',
+        score: 90,
+        containsAddedSugar: true,
+        containsHiddenSugar: true,
+        containsArtificialSweetener: false,
+        containsNaturalSugar: true,
+        detectedSugars: ['high fructose corn syrup', 'dextrose', 'fruit juice concentrate'],
+        artificialSweeteners: [],
         confidence: 0.92,
-        reasons: [
-          'Contains "High Fructose Corn Syrup" (Added Sugar)',
-          'Contains "Dextrose" (Hidden Sugar)',
-        ],
-        triggers: [
-          { term: 'High Fructose Corn Syrup', category: 'Added Sugar', reason: 'High glycemic index sweetener' },
-          { term: 'Dextrose', category: 'Hidden Sugar', reason: 'Simple sugar often added for texture' },
-          { term: 'Orange Juice Concentrate', category: 'Natural Sugar', reason: 'Concentrated fruit sugars' }
-        ],
-        matchedTerms: [
-          { term: 'High Fructose Corn Syrup', type: 'added_sugar' },
-          { term: 'Dextrose', type: 'hidden_sugar' },
-          { term: 'Orange Juice Concentrate', type: 'natural_non_sugar' }
-        ],
-        notes: 'Simulated result for demo purposes. Product: Generic Orange Juice.',
-        ingredients_source: 'VISION',
-        summary: 'This product contains multiple sources of added and concentrated sugars. It is likely high in glycemic load.'
-      });
+        explanation: '3 added sugar sources detected (high fructose corn syrup, dextrose, fruit juice concentrate); includes a sugar source not obviously named "sugar".',
+        model: 'sugarshield-rules-v2',
+        latencyMs: 4,
+        mode: getStoredMode(),
+        productName: 'Generic Orange Juice (Demo)',
+        ingredientsText: 'Water, High Fructose Corn Syrup, Dextrose, Orange Juice Concentrate, Natural Flavors, Ascorbic Acid.',
+      } as SugarShieldResult);
       setScanning(false);
     }, 1500); // Fake delay for realism
   };

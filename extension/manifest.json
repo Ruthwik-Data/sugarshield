@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "SugarShield",
+  "version": "2.0.0",
+  "description": "Scan ingredient lists on Amazon, Walmart, and Target product pages (or paste your own) for hidden sugars, added sugars, and artificial sweeteners, with an instant SugarShield risk score.",
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "src/background/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.com/*",
+        "*://*.walmart.com/*",
+        "*://*.target.com/*"
+      ],
+      "js": [
+        "src/lib/api.js",
+        "src/lib/renderResult.js",
+        "src/components/resultView.js",
+        "src/adapters/index.js",
+        "src/adapters/amazon.js",
+        "src/adapters/walmart.js",
+        "src/adapters/target.js",
+        "src/content/content.js"
+      ],
+      "css": ["src/content/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://sugarshield.vercel.app/*",
+    "*://*.amazon.com/*",
+    "*://*.walmart.com/*",
+    "*://*.target.com/*"
+  ]
+}

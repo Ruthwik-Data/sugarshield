@@ -1,0 +1,17 @@
+# SugarShield ML pipeline — CPU-only.
+#
+# No GPU is available in the reference training environment, and Hugging
+# Face Hub / PyTorch's own download CDN are blocked by network policy there
+# (see ml/README.md, "Why a from-scratch model instead of LoRA on a
+# pretrained checkpoint"). Everything here runs with locally-defined model
+# architectures and a tokenizer trained on SugarShield's own data — no
+# `from_pretrained("some/hub-id")` calls anywhere in this pipeline.
+
+torch>=2.2
+transformers>=4.40
+tokenizers>=0.19
+datasets>=2.19
+accelerate>=0.30
+peft>=0.10
+scikit-learn>=1.4
+numpy>=1.26

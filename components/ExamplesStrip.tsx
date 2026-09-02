@@ -1,70 +1,76 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ClassificationResult } from '@/lib/types';
+import { SugarShieldResult } from '@/lib/apiClient';
 
 interface ExamplesStripProps {
-    onSelect: (result: ClassificationResult) => void;
+    onSelect: (result: SugarShieldResult) => void;
 }
 
+const BASE = { model: 'sugarshield-rules-v2', latencyMs: 3, mode: 'STRICT' as const };
+
 export default function ExamplesStrip({ onSelect }: ExamplesStripProps) {
-    const examples = [
+    const examples: { id: string; label: string; icon: string; result: SugarShieldResult }[] = [
         {
             id: 'cola',
             label: 'Cola Can',
             icon: '🥤',
             result: {
-                classification: 'FAIL',
-                verdict: 'FAIL',
-                confidence: 0.98,
-                reasons: [
-                    'High Fructose Corn Syrup detected at top of list',
-                    'Contains 39g added sugar per can',
-                    'No fiber content'
-                ],
-                matchedTerms: [
-                    { term: 'High Fructose Corn Syrup', type: 'added_sugar' },
-                    { term: 'Sugar', type: 'added_sugar' }
-                ],
-                notes: 'Example: A typical soda can analysis.'
-            }
+                ...BASE,
+                riskLevel: 'VERY_HIGH',
+                score: 88,
+                containsAddedSugar: true,
+                containsHiddenSugar: false,
+                containsArtificialSweetener: false,
+                containsNaturalSugar: false,
+                detectedSugars: ['high fructose corn syrup'],
+                artificialSweeteners: [],
+                confidence: 0.95,
+                explanation: '1 added sugar source detected (high fructose corn syrup), prominently placed near the top of the ingredient list.',
+                productName: 'Classic Cola',
+                ingredientsText: 'Carbonated Water, High Fructose Corn Syrup, Caramel Color, Phosphoric Acid, Natural Flavors, Caffeine.',
+            },
         },
         {
             id: 'cookies',
             label: 'Oat Cookies',
             icon: '🍪',
             result: {
-                classification: 'WARN',
-                verdict: 'WARN',
+                ...BASE,
+                riskLevel: 'HIGH',
+                score: 65,
+                containsAddedSugar: true,
+                containsHiddenSugar: true,
+                containsArtificialSweetener: false,
+                containsNaturalSugar: false,
+                detectedSugars: ['brown rice syrup', 'cane sugar'],
+                artificialSweeteners: [],
                 confidence: 0.85,
-                reasons: [
-                    'Contains "Brown Rice Syrup" (hidden sugar)',
-                    'Raisins contribute to total sugar count',
-                    'Moderate sugar content overall'
-                ],
-                matchedTerms: [
-                    { term: 'Brown Rice Syrup', type: 'hidden_sugar' }
-                ],
-                notes: 'Example: "Healthy" cookies often contain alternative syrups.'
-            }
+                explanation: '2 added sugar sources detected (brown rice syrup, cane sugar); includes a sugar source not obviously named "sugar".',
+                productName: '"Healthy" Oat Cookies',
+                ingredientsText: 'Whole Grain Oats, Brown Rice Syrup, Cane Sugar, Palm Oil, Raisins.',
+            },
         },
         {
             id: 'yogurt',
             label: 'Greek Yogurt',
             icon: '🥣',
             result: {
-                classification: 'PASS',
-                verdict: 'PASS',
-                confidence: 0.92,
-                reasons: [
-                    'No added sugars found in ingredient list',
-                    'Contains only naturally occurring lactose',
-                    'High protein content'
-                ],
-                matchedTerms: [],
-                notes: 'Example: Plain dairy products usually pass check.'
-            }
-        }
+                ...BASE,
+                riskLevel: 'SAFE',
+                score: 0,
+                containsAddedSugar: false,
+                containsHiddenSugar: false,
+                containsArtificialSweetener: false,
+                containsNaturalSugar: true,
+                detectedSugars: [],
+                artificialSweeteners: [],
+                confidence: 0.7,
+                explanation: 'No added sugar or artificial sweeteners detected. Naturally occurring sugars (e.g. lactose) may be present.',
+                productName: 'Plain Greek Yogurt',
+                ingredientsText: 'Cultured Pasteurized Nonfat Milk.',
+            },
+        },
     ];
 
     return (
@@ -78,7 +84,7 @@ export default function ExamplesStrip({ onSelect }: ExamplesStripProps) {
                         key={ex.id}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.96 }}
-                        onClick={() => onSelect(ex.result as any)}
+                        onClick={() => onSelect(ex.result)}
                         className="flex items-center gap-2.5 px-3 py-2 bg-paper border border-black/5 rounded-xl shadow-sm hover:shadow-md transition-all shrink-0"
                     >
                         <span className="text-lg">{ex.icon}</span>

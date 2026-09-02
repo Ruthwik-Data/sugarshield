@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import evalSet from '@/data/evalSet.json';
 import { classifyProduct } from '@/lib/classifier';
+import ModelComparison from '@/components/ModelComparison';
 
 // Helper to map 0-1 confidence to High/Medium/Low
 function getConfidenceLabel(score: number): 'High' | 'Medium' | 'Low' {
@@ -28,7 +29,6 @@ function getVerdictLabel(verdict: string): string {
 
 export default function EvalPage() {
   const [filter, setFilter] = useState<'ALL' | 'PASS' | 'WARN' | 'FAIL' | 'FALSE_NEG'>('ALL');
-  const [evalMode, setEvalMode] = useState<'STRICT' | 'LENIENT'>('STRICT');
 
   // RUN EVALS LIVE
   const results = useMemo(() => {
@@ -67,17 +67,12 @@ export default function EvalPage() {
   }, []);
 
   // CALCULATE METRICS
+  // v1's classifier (lib/classifier.ts) never had a lenient mode — it is
+  // frozen exactly as it shipped, kept only as a historical baseline. We no
+  // longer show simulated/invented numbers for a "lenient v1"; the real
+  // strict-vs-lenient comparison lives in the SugarShield 2.0 section below,
+  // which is backed by lib/riskEngine.ts (which genuinely supports both).
   const metrics = useMemo(() => {
-    if (evalMode === 'LENIENT') {
-      // SIMULATED METRICS for Lenient Mode
-      return {
-        accuracy: 72,
-        falseNegatives: 3,
-        triggerMatchRate: 65,
-        isSimulated: true
-      };
-    }
-
     const total = results.length;
     const correct = results.filter(r => r.isCorrect).length;
     const falseNegatives = results.filter(r => r.isFalseNegative).length;
@@ -87,9 +82,8 @@ export default function EvalPage() {
       accuracy: Math.round((correct / total) * 100),
       falseNegatives,
       triggerMatchRate: Math.round((triggerMatches / total) * 100),
-      isSimulated: false
     };
-  }, [results, evalMode]);
+  }, [results]);
 
   const filteredResults = results.filter(r => {
     if (filter === 'ALL') return true;
@@ -109,38 +103,15 @@ export default function EvalPage() {
               SugarShield is designed for safety-first decisions. Missing hidden sugar is riskier than over-warning.
             </p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="bg-white border border-zinc-200 rounded-lg p-1 flex">
-              <button
-                onClick={() => setEvalMode('STRICT')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${evalMode === 'STRICT' ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:bg-zinc-50'}`}
-              >
-                Strict Mode
-              </button>
-              <button
-                onClick={() => setEvalMode('LENIENT')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${evalMode === 'LENIENT' ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:bg-zinc-50'}`}
-              >
-                Lenient Mode
-              </button>
-            </div>
-            <Link href="/" className="px-4 py-2 bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition text-sm font-medium text-zinc-700">
-              ← Back
-            </Link>
-          </div>
+          <Link href="/" className="px-4 py-2 bg-white border border-zinc-200 rounded-xl shadow-sm hover:shadow-md transition text-sm font-medium text-zinc-700 shrink-0">
+            ← Back
+          </Link>
         </div>
-
-        {evalMode === 'LENIENT' && (
-          <div className="text-center">
-            <span className="inline-block px-3 py-1 bg-amber-50 text-amber-700 text-xs font-medium rounded-full border border-amber-100">
-              Lenient Mode illustrates an alternative policy trade-off with higher pass rates but increased false negatives.
-            </span>
-          </div>
-        )}
 
         {/* Safety Summary */}
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-          <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-5">Safety Summary</h2>
+          <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Safety Summary</h2>
+          <p className="text-xs text-zinc-400 mb-5">SugarShield v1 — legacy rule engine, frozen exactly as it originally shipped, kept as a historical baseline.</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="flex flex-col gap-1">
               <span className={`text-3xl font-semibold ${metrics.falseNegatives === 0 ? 'text-emerald-600' : 'text-red-600'}`}>
@@ -162,6 +133,8 @@ export default function EvalPage() {
           </div>
         </div>
 
+        <ModelComparison />
+
         {/* Why This Matters */}
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 space-y-4">
           <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Why This Matters</h2>
@@ -175,13 +148,13 @@ export default function EvalPage() {
             <div className="bg-zinc-50 rounded-xl p-4 space-y-1.5">
               <p className="text-sm font-semibold text-zinc-800">Keyword-only systems miss cases</p>
               <p className="text-xs text-zinc-500 leading-relaxed">
-                A basic system looking for "sugar" would miss "corn syrup solids." SugarShield is specifically designed to catch these hidden forms.
+                A basic system looking for &quot;sugar&quot; would miss &quot;corn syrup solids.&quot; SugarShield is specifically designed to catch these hidden forms.
               </p>
             </div>
             <div className="bg-zinc-50 rounded-xl p-4 space-y-1.5">
               <p className="text-sm font-semibold text-zinc-800">Missing it is worse</p>
               <p className="text-xs text-zinc-500 leading-relaxed">
-                A false negative tells someone a product is safe when it isn't. A false positive just prompts a double-check. We optimize accordingly.
+                A false negative tells someone a product is safe when it isn&apos;t. A false positive just prompts a double-check. We optimize accordingly.
               </p>
             </div>
           </div>
@@ -221,7 +194,7 @@ export default function EvalPage() {
         </div>
 
         {/* Results Table */}
-        <div className={`bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden ${evalMode === 'LENIENT' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+        <div className="bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
@@ -288,7 +261,7 @@ export default function EvalPage() {
 
           <div className="px-4 py-3 bg-zinc-50 border-t border-zinc-100">
             <p className="text-xs text-zinc-400 text-center">
-              Live evaluation data. Lenient mode results are simulated for comparison.
+              Live evaluation data, computed in your browser from the original 15-case eval set.
             </p>
           </div>
         </div>
@@ -297,7 +270,7 @@ export default function EvalPage() {
         <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">PM Insight</p>
           <p className="text-sm text-zinc-600 leading-relaxed italic">
-            "Several WARN results (e.g., Diet Soda, Coconut Water) are intentional. These products contain sweeteners or naturally occurring sugars that are debated in nutritional science. SugarShield defaults to caution rather than silent pass to preserve user trust."
+            &quot;Several WARN results (e.g., Diet Soda, Coconut Water) are intentional. These products contain sweeteners or naturally occurring sugars that are debated in nutritional science. SugarShield defaults to caution rather than silent pass to preserve user trust.&quot;
           </p>
         </div>
 

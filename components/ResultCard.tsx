@@ -2,166 +2,195 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ClassificationResult } from '@/lib/types';
+import { SugarShieldResult } from '@/lib/apiClient';
 
-type VerdictKey = 'PASS' | 'WARN' | 'FAIL';
+type RiskLevel = 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'VERY_HIGH';
 
-const verdictConfig: Record<
-  VerdictKey,
-  { bg: string; text: string; border: string; icon: string; label: string; heroColor: string }
+const RISK_CONFIG: Record<
+  RiskLevel,
+  { label: string; ring: string; text: string; bg: string; border: string; bar: string }
 > = {
-  PASS: {
-    bg: 'bg-emerald-50 text-emerald-900',
-    text: 'text-emerald-700',
-    border: 'border-emerald-200',
-    icon: 'check_circle',
-    label: 'Safe',
-    heroColor: 'text-emerald-600',
-  },
-  WARN: {
-    bg: 'bg-amber-50 text-amber-900',
-    text: 'text-amber-700',
-    border: 'border-amber-200',
-    icon: 'warning',
-    label: 'Caution',
-    heroColor: 'text-amber-500',
-  },
-  FAIL: {
-    bg: 'bg-red-50 text-red-900',
-    text: 'text-red-700',
-    border: 'border-red-200',
-    icon: 'cancel',
-    label: 'Avoid',
-    heroColor: 'text-red-600',
-  },
+  SAFE: { label: 'Safe', ring: 'ring-emerald-200', text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', bar: 'bg-emerald-500' },
+  LOW: { label: 'Low Risk', ring: 'ring-teal-200', text: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-200', bar: 'bg-teal-500' },
+  MODERATE: { label: 'Moderate Risk', ring: 'ring-amber-200', text: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', bar: 'bg-amber-500' },
+  HIGH: { label: 'High Sugar Risk', ring: 'ring-orange-200', text: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', bar: 'bg-orange-500' },
+  VERY_HIGH: { label: 'Very High Sugar Risk', ring: 'ring-red-200', text: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', bar: 'bg-red-500' },
 };
 
-function getVerdict(result: ClassificationResult | any): VerdictKey {
-  // Safe accessor for inconsistent backend formats
-  const raw =
-    result?.classification ??
-    result?.verdict ??
-    'WARN';
-
-  const v = String(raw).trim().toUpperCase();
-  if (v === 'PASS') return 'PASS';
-  if (v === 'FAIL') return 'FAIL';
-  return 'WARN';
+function normalizeRiskLevel(result: SugarShieldResult | any): RiskLevel {
+  const raw = String(result?.riskLevel ?? '').toUpperCase();
+  if (raw in RISK_CONFIG) return raw as RiskLevel;
+  // Legacy PASS/WARN/FAIL fallback, in case an older result shape reaches this component.
+  const legacy = String(result?.classification ?? result?.verdict ?? '').toUpperCase();
+  if (legacy === 'PASS') return 'SAFE';
+  if (legacy === 'FAIL') return 'HIGH';
+  return 'MODERATE';
 }
 
-function getPrimaryTrigger(result: ClassificationResult | any): string | null {
-  const matchedTerms = Array.isArray(result?.matchedTerms) ? result.matchedTerms : [];
-  if (matchedTerms.length === 0) return null;
+/** Splits raw ingredient text and wraps any detected sugar/sweetener term in a highlight span. */
+function HighlightedIngredients({
+  text,
+  detectedSugars,
+  artificialSweeteners,
+}: {
+  text: string;
+  detectedSugars: string[];
+  artificialSweeteners: string[];
+}) {
+  const parts = text.split(/([,;])/);
+  const sugarSet = new Set(detectedSugars.map((t) => t.toLowerCase()));
+  const sweetenerSet = new Set(artificialSweeteners.map((t) => t.toLowerCase()));
 
-  // Prioritize added sugar over hidden sugar, first one found is usually most relevant
-  // assuming list is sorted or we just pick the first severe one.
-  // In a real app we might sort by severity config.
-  return matchedTerms[0].term;
+  return (
+    <p className="text-sm leading-relaxed text-zinc-600">
+      {parts.map((part, i) => {
+        const lower = part.trim().toLowerCase();
+        const isSugar = [...sugarSet].some((t) => lower.includes(t));
+        const isSweetener = !isSugar && [...sweetenerSet].some((t) => lower.includes(t));
+        if (isSugar) {
+          return (
+            <span key={i} className="font-semibold text-red-600 bg-red-50 px-1 rounded">
+              {part}
+            </span>
+          );
+        }
+        if (isSweetener) {
+          return (
+            <span key={i} className="font-semibold text-purple-600 bg-purple-50 px-1 rounded">
+              {part}
+            </span>
+          );
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </p>
+  );
 }
 
-export default function ResultCard({ result }: { result: ClassificationResult | any }) {
-  const verdict = getVerdict(result);
-  const config = verdictConfig[verdict];
-  const confidence = Math.round((Number(result?.confidence) || 0) * 100);
-  const formattedReasons = Array.isArray(result?.reasons) ? result.reasons : [];
-  const matchedTerms = Array.isArray(result?.matchedTerms) ? result.matchedTerms : [];
-  const primaryTrigger = getPrimaryTrigger(result);
+function FlagRow({ label, value, invert }: { label: string; value: boolean; invert?: boolean }) {
+  const good = invert ? value : !value;
+  return (
+    <div className="flex items-center justify-between py-1.5 text-sm">
+      <span className="text-zinc-500">{label}</span>
+      <span className={`font-semibold ${good ? 'text-zinc-400' : 'text-red-600'}`}>
+        {value ? 'Yes' : 'No'}
+      </span>
+    </div>
+  );
+}
+
+export default function ResultCard({ result }: { result: (SugarShieldResult & { ingredientsText?: string }) | any }) {
+  const riskLevel = normalizeRiskLevel(result);
+  const config = RISK_CONFIG[riskLevel];
+  const score = typeof result?.score === 'number' ? Math.round(result.score) : null;
+  const confidencePct = Math.round((Number(result?.confidence) || 0) * 100);
+  const detectedSugars: string[] = Array.isArray(result?.detectedSugars) ? result.detectedSugars : [];
+  const artificialSweeteners: string[] = Array.isArray(result?.artificialSweeteners) ? result.artificialSweeteners : [];
+  const explanation: string = result?.explanation || result?.notes || 'No further explanation available.';
+  const ingredientsText: string | undefined = result?.ingredientsText || result?.extracted?.ingredientsText;
 
   const [feedback, setFeedback] = useState<'yes' | 'unsure' | 'no' | null>(null);
 
   useEffect(() => {
-    // Reset feedback when result changes
     setFeedback(null);
   }, [result]);
 
   const handleFeedback = (val: 'yes' | 'unsure' | 'no') => {
     setFeedback(val);
     const key = `sugarshield_feedback_${Date.now()}`;
-    localStorage.setItem(key, JSON.stringify({
-      val,
-      verdict,
-      trigger: primaryTrigger,
-      timestamp: new Date().toISOString()
-    }));
+    try {
+      localStorage.setItem(
+        key,
+        JSON.stringify({ val, riskLevel, detectedSugars, timestamp: new Date().toISOString() })
+      );
+    } catch {}
   };
-
-  const handleExport = () => {
-    const text = `SugarShield Analysis\n\nVerdict: ${verdict}\nConfidence: ${confidence}%\nTrigger: ${primaryTrigger || 'None identified'}\n\nReasons:\n${formattedReasons.map((r: string) => `• ${r}`).join('\n')}\n\n${result.notes || ''}`;
-
-    if (typeof navigator !== 'undefined' && navigator.share) {
-      navigator.share({
-        title: 'SugarShield Result',
-        text: text,
-      }).catch(console.error);
-    } else {
-      const blob = new Blob([text], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `sugarshield-${verdict.toLowerCase()}-${Date.now()}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-  };
-
-  const confidenceLabel = confidence >= 90 ? 'High' : confidence >= 70 ? 'Medium' : 'Low';
-
-  const triggerBadges: string[] = result.triggers?.length
-    ? result.triggers.map((t: any) => t.term)
-    : matchedTerms.map((mt: any) => mt.term);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: "easeOut" }}
-      className="bg-white rounded-2xl p-5 shadow-sm border border-zinc-100 space-y-4"
+      transition={{ duration: 0.28, ease: 'easeOut' }}
+      className="bg-white rounded-2xl p-5 shadow-sm border border-zinc-100 space-y-5"
     >
-      {/* 1. Verdict */}
-      <div className="space-y-0.5">
-        <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold">Verdict</p>
-        <p className={`text-2xl font-semibold ${config.heroColor}`}>
-          {config.label}
-        </p>
+      {/* SugarShield Score */}
+      <div className="flex items-center gap-4">
+        <div className={`w-20 h-20 rounded-full ${config.bg} ${config.border} border-2 flex flex-col items-center justify-center shrink-0`}>
+          {score !== null ? (
+            <>
+              <span className={`text-2xl font-bold leading-none ${config.text}`}>{score}</span>
+              <span className="text-[9px] text-zinc-400 font-medium mt-0.5">/ 100</span>
+            </>
+          ) : (
+            <span className="text-lg">—</span>
+          )}
+        </div>
+        <div>
+          <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-0.5">SugarShield Score</p>
+          <p className={`text-xl font-bold ${config.text}`}>{config.label}</p>
+        </div>
       </div>
 
-      {/* 2. Confidence */}
-      <p className="text-sm text-zinc-500">
-        Confidence: <span className="font-medium text-zinc-700">{confidence}%</span>{' '}
-        <span className="text-zinc-400">({confidenceLabel})</span>
-      </p>
-
-      {/* 3. Sugar Trigger Badges */}
-      {triggerBadges.length > 0 && (
-        <div>
-          <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-2">Detected Triggers</p>
-          <div className="flex flex-wrap gap-1.5">
-            {triggerBadges.map((term, i) => (
-              <span
-                key={i}
-                className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-zinc-100 text-zinc-600"
-              >
-                {term}
-              </span>
-            ))}
-          </div>
+      {/* Detected sugars */}
+      {(detectedSugars.length > 0 || artificialSweeteners.length > 0) && (
+        <div className="space-y-2">
+          {detectedSugars.length > 0 && (
+            <div>
+              <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1.5">Detected Sugars</p>
+              <div className="flex flex-wrap gap-1.5">
+                {detectedSugars.map((term, i) => (
+                  <span key={i} className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-red-50 text-red-700 border border-red-100 capitalize">
+                    {term}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {artificialSweeteners.length > 0 && (
+            <div>
+              <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1.5">Artificial / Non-Nutritive Sweeteners</p>
+              <div className="flex flex-wrap gap-1.5">
+                {artificialSweeteners.map((term, i) => (
+                  <span key={i} className="px-2.5 py-0.5 text-xs font-medium rounded-full bg-purple-50 text-purple-700 border border-purple-100 capitalize">
+                    {term}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* 4. Explanation */}
-      <p className="text-sm text-zinc-400 leading-relaxed">
-        This product contains ingredients associated with added or hidden sugars.
+      {/* Highlighted ingredients */}
+      {ingredientsText && (
+        <div>
+          <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1.5">Ingredients</p>
+          <HighlightedIngredients text={ingredientsText} detectedSugars={detectedSugars} artificialSweeteners={artificialSweeteners} />
+        </div>
+      )}
+
+      {/* Flags */}
+      <div className="bg-zinc-50 rounded-xl px-3 divide-y divide-zinc-100">
+        <FlagRow label="Added sugar detected" value={!!result?.containsAddedSugar} />
+        <FlagRow label="Hidden sugar detected" value={!!result?.containsHiddenSugar} />
+        <FlagRow label="Artificial sweetener" value={!!result?.containsArtificialSweetener} />
+        <FlagRow label="Natural sugar only" value={!!result?.containsNaturalSugar} invert />
+      </div>
+
+      {/* Why flagged */}
+      <div>
+        <p className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-1.5">Why SugarShield Flagged This</p>
+        <p className="text-sm text-zinc-600 leading-relaxed">{explanation}</p>
+      </div>
+
+      {/* Confidence */}
+      <p className="text-sm text-zinc-500">
+        Model confidence: <span className="font-medium text-zinc-700">{confidencePct}%</span>
+        {result?.mode && <span className="text-zinc-400"> · {result.mode === 'STRICT' ? 'Strict mode' : 'Lenient mode'}</span>}
       </p>
 
       {/* Footer */}
       <div className="pt-3 border-t border-zinc-100 space-y-3">
-        {result?.notes && (
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            {result.notes}
-          </p>
-        )}
-
-        {/* Feedback */}
         <div className="bg-zinc-50 rounded-xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span className="text-xs font-medium text-zinc-500">Does this result look right?</span>
           {feedback ? (
@@ -173,16 +202,6 @@ export default function ResultCard({ result }: { result: ClassificationResult | 
               <button onClick={() => handleFeedback('no')} className="px-3 py-1 bg-white border border-zinc-200 rounded-lg text-xs hover:bg-red-50 hover:text-red-700 transition">Incorrect</button>
             </div>
           )}
-        </div>
-
-        {/* Export */}
-        <div className="flex justify-end">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-colors text-xs font-semibold text-zinc-500"
-          >
-            <span>📝</span> Save to Notes
-          </button>
         </div>
       </div>
     </motion.div>

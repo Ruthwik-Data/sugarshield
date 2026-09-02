@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { classifyIngredients } from '@/lib/classifier';
-
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+import { analyzeIngredientsText, EvalMode } from '@/lib/riskEngine';
 
 export async function POST(req: Request) {
   try {
@@ -10,8 +8,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'OPENAI_API_KEY not set on server' }, { status: 500 });
     }
 
+    // Instantiated lazily (not at module scope) so the build and every other
+    // API route keep working in environments/previews with no OpenAI key set.
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
     const body = await req.json().catch(() => ({}));
     const imageDataUrl = String(body?.imageDataUrl ?? '').trim();
+    const mode: EvalMode = body?.mode === 'LENIENT' ? 'LENIENT' : 'STRICT';
 
     if (!imageDataUrl.startsWith('data:image/')) {
       return NextResponse.json({ error: 'Missing/invalid imageDataUrl' }, { status: 400 });
@@ -64,34 +67,43 @@ Rules:
         ? null
         : String(parsed?.servingSize);
 
-    // ✅ If OCR couldn't find ingredients, return a meaningful WARN result
+    // If OCR couldn't find ingredients, return a meaningful low-confidence result
     if (!ingredientsText) {
       return NextResponse.json({
-        classification: 'WARN',
+        riskLevel: 'MODERATE',
+        score: 40,
+        containsAddedSugar: false,
+        containsHiddenSugar: false,
+        containsArtificialSweetener: false,
+        containsNaturalSugar: false,
+        detectedSugars: [],
+        artificialSweeteners: [],
         confidence: 0.2,
-        reasons: [
-          'Could not detect an ingredients list in the image.',
-          'Try a clearer photo: flat, well-lit, and zoomed on the ingredients section.',
-        ],
-        matchedTerms: [],
-        notes: 'Upload worked. OCR did not find ingredients text.',
+        explanation: 'Could not detect an ingredients list in the image. Try a clearer photo: flat, well-lit, and zoomed on the ingredients section.',
+        model: 'sugarshield-rules-v2',
+        latencyMs: 0,
+        mode,
         extracted: { ingredientsText, sugarGramsPerServing, servingSize },
       });
     }
 
-    const classification = classifyIngredients(ingredientsText);
-
-    // ✅ Guarantee at least 1 reason for display
-    const reasons =
-      Array.isArray(classification?.reasons) && classification.reasons.length > 0
-        ? classification.reasons
-        : ['Ingredients extracted, but no specific sugar indicators matched.'];
+    const result = analyzeIngredientsText(ingredientsText, { source: 'PASTED', mode });
 
     return NextResponse.json({
-      ...classification,
-      reasons,
+      riskLevel: result.riskLevel,
+      score: Math.round(result.score),
+      containsAddedSugar: result.containsAddedSugar,
+      containsHiddenSugar: result.containsHiddenSugar,
+      containsArtificialSweetener: result.containsArtificialSweetener,
+      containsNaturalSugar: result.containsNaturalSugar,
+      detectedSugars: result.detectedSugars,
+      artificialSweeteners: result.artificialSweeteners,
+      confidence: Math.round(result.confidence * 100) / 100,
+      explanation: result.explanation,
+      model: 'sugarshield-rules-v2',
+      latencyMs: 0,
+      mode,
       extracted: { ingredientsText, sugarGramsPerServing, servingSize },
-      notes: 'Result generated from OCR extraction + ingredient classification.',
     });
   } catch (err: any) {
     console.error(err);

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SugarShield</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="ss-header">
+    <div class="ss-logo">🛡️ SugarShield</div>
+  </header>
+
+  <main id="ss-root">
+    <form id="ss-form">
+      <label for="ss-product-name">Product name <span class="ss-optional">(optional)</span></label>
+      <input id="ss-product-name" type="text" placeholder="e.g. Greek Yogurt, Vanilla" autocomplete="off" />
+
+      <label for="ss-ingredients">Ingredients <span class="ss-required">*</span></label>
+      <textarea
+        id="ss-ingredients"
+        required
+        rows="6"
+        placeholder="Water, Sugar, Corn Syrup, ..."
+      ></textarea>
+
+      <div class="ss-mode-row">
+        <span>Mode:</span>
+        <label class="ss-radio"><input type="radio" name="ss-mode" value="STRICT" checked /> Strict</label>
+        <label class="ss-radio"><input type="radio" name="ss-mode" value="LENIENT" /> Lenient</label>
+      </div>
+
+      <button type="submit" id="ss-analyze-btn">Analyze</button>
+    </form>
+
+    <button type="button" id="ss-new-btn" class="ss-secondary" hidden>New analysis</button>
+
+    <div id="ss-status" class="ss-status" hidden></div>
+    <div id="ss-result"></div>
+  </main>
+
+  <footer class="ss-footer">
+    <span id="ss-api-base"></span>
+  </footer>
+
+  <script src="../lib/api.js"></script>
+  <script src="../lib/renderResult.js"></script>
+  <script src="../components/resultView.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

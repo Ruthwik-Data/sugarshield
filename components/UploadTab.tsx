@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { getStoredMode } from '@/lib/apiClient';
 
 type Props = { onResult: (result: any) => void };
 
@@ -26,7 +27,7 @@ export default function UploadTab({ onResult }: Props) {
         const res = await fetch('/api/vision-parse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageDataUrl }),
+          body: JSON.stringify({ imageDataUrl, mode: getStoredMode() }),
         });
 
         const data = await res.json().catch(() => ({}));
@@ -34,24 +35,40 @@ export default function UploadTab({ onResult }: Props) {
         if (!res.ok) {
           setErr(data?.error || 'Vision parse failed');
           onResult({
-            classification: 'WARN',
+            riskLevel: 'MODERATE',
+            score: 40,
+            containsAddedSugar: false,
+            containsHiddenSugar: false,
+            containsArtificialSweetener: false,
+            containsNaturalSugar: false,
+            detectedSugars: [],
+            artificialSweeteners: [],
             confidence: 0.2,
-            reasons: [data?.error || 'Vision parse failed'],
-            matchedTerms: [],
-            notes: 'Upload worked, but analysis failed.',
+            explanation: data?.error || 'Vision parse failed',
+            model: 'sugarshield-rules-v2',
+            latencyMs: 0,
+            mode: getStoredMode(),
           });
           return;
         }
 
-        onResult(data);
+        onResult({ ...data, ingredientsText: data?.extracted?.ingredientsText });
       } catch (e: any) {
         setErr(String(e?.message ?? e));
         onResult({
-          classification: 'WARN',
+          riskLevel: 'MODERATE',
+          score: 40,
+          containsAddedSugar: false,
+          containsHiddenSugar: false,
+          containsArtificialSweetener: false,
+          containsNaturalSugar: false,
+          detectedSugars: [],
+          artificialSweeteners: [],
           confidence: 0.2,
-          reasons: [String(e?.message ?? e)],
-          matchedTerms: [],
-          notes: 'Upload worked, but request failed.',
+          explanation: String(e?.message ?? e),
+          model: 'sugarshield-rules-v2',
+          latencyMs: 0,
+          mode: getStoredMode(),
         });
       } finally {
         setLoading(false);

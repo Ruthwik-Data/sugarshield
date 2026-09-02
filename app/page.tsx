@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ScanTab from '@/components/ScanTab';
 import UploadTab from '@/components/UploadTab';
@@ -11,13 +11,14 @@ import SegmentedTabs from '@/components/SegmentedTabs';
 import DisclaimerCard from '@/components/DisclaimerCard';
 import ExamplesStrip from '@/components/ExamplesStrip';
 import Onboarding from '@/components/Onboarding';
-import { ClassificationResult } from '@/lib/types';
+import ModeToggle from '@/components/ModeToggle';
+import { SugarShieldResult } from '@/lib/apiClient';
 
 type Tab = 'scan' | 'upload' | 'link';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('scan');
-  const [result, setResult] = useState<ClassificationResult | null>(null);
+  const [result, setResult] = useState<SugarShieldResult | null>(null);
 
   return (
     <div className="min-h-screen sugar-bg text-ink pb-24">
@@ -31,7 +32,7 @@ export default function Home() {
         <section className="bg-white border border-zinc-100 rounded-2xl p-5 shadow-sm space-y-4">
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">The problem</p>
           <p className="text-sm text-zinc-500 leading-relaxed">
-            Food labels hide sugar under dozens of ingredient names, making it hard to know what you're actually buying.
+            Food labels hide sugar under dozens of ingredient names, making it hard to know what you&apos;re actually buying.
           </p>
 
           <p className="text-base font-semibold text-zinc-700 leading-relaxed">
@@ -39,7 +40,7 @@ export default function Home() {
           </p>
 
           <h1 className="text-3xl md:text-4xl font-semibold leading-tight text-zinc-900">
-            Scan food. Instantly know if it's safe for your sugar levels.
+            Scan food. Instantly know if it&apos;s safe for your sugar levels.
           </h1>
         </section>
 
@@ -64,7 +65,7 @@ export default function Home() {
         {/* 6. REAL EXAMPLE */}
         <section className="bg-zinc-50 border border-zinc-100 rounded-2xl p-5 shadow-sm">
           <p className="text-sm text-zinc-500 leading-relaxed">
-            Example: A product listed "corn syrup solids" instead of sugar.
+            Example: A product listed &quot;corn syrup solids&quot; instead of sugar.
             A keyword-based system would miss it. SugarShield flags this as hidden sugar risk.
           </p>
         </section>
@@ -94,6 +95,8 @@ export default function Home() {
 
         {/* 9. TOOL / CTA */}
         <div className="space-y-4">
+          <ModeToggle />
+
           <SegmentedTabs activeTab={activeTab} onChange={setActiveTab} />
 
           {!result && <ExamplesStrip onSelect={setResult} />}

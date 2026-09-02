@@ -31,3 +31,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ml — regeneratable intermediate artifacts (run ml/prepare_dataset.py to rebuild).
+# The trained checkpoint itself (ml/checkpoints/) and results (ml/results/)
+# ARE committed — they're the actual deliverable, not build output.
+/ml/prepared/
+__pycache__/
+*.pyc
