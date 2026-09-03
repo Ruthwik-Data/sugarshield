@@ -27,7 +27,8 @@ export type RiskLevel = 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'VERY_HIGH';
 export type EvalMode = 'STRICT' | 'LENIENT';
 
 export interface DetectionMatch {
-  term: string;
+  term: string; // the raw label alias that actually matched (e.g. "hfcs")
+  canonical: string; // canonical display name (e.g. "high fructose corn syrup")
   category: SugarCategory;
   reason: string;
   index: number; // position in the normalized ingredient list
@@ -69,19 +70,20 @@ export function detectMatches(ingredientList: string[]): DetectionMatch[] {
   ingredientList.forEach((token, index) => {
     const entry = matchToken(token);
     if (entry) {
-      matches.push({ term: entry.term, category: entry.category, reason: entry.reason, index });
+      matches.push({ term: entry.term, canonical: entry.canonical, category: entry.category, reason: entry.reason, index });
     }
   });
   return matches;
 }
 
+/** Dedupes by canonical name, e.g. "hfcs" and "high fructose corn syrup" collapse to one entry. */
 function uniqueTerms(matches: DetectionMatch[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const m of matches) {
-    if (!seen.has(m.term)) {
-      seen.add(m.term);
-      out.push(m.term);
+    if (!seen.has(m.canonical)) {
+      seen.add(m.canonical);
+      out.push(m.canonical);
     }
   }
   return out;

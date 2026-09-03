@@ -14,7 +14,8 @@ describe('riskEngine — obvious cases', () => {
   it('flags multiple hidden sugar sources as very high risk', () => {
     const result = analyzeIngredientsText('Soy Protein Isolate, Brown Rice Syrup, Cane Sugar, Palm Oil, Cocoa.');
     expect(result.containsHiddenSugar).toBe(true);
-    expect(result.detectedSugars).toEqual(expect.arrayContaining(['brown rice syrup', 'cane sugar']));
+    // "cane sugar" canonicalizes to "sugar" — see lib/lexicon.ts's canonical mapping.
+    expect(result.detectedSugars).toEqual(expect.arrayContaining(['brown rice syrup', 'sugar']));
     expect(result.riskLevel).not.toBe('SAFE');
   });
 });

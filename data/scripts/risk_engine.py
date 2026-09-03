@@ -72,6 +72,7 @@ def detect_matches(ingredient_list):
         if entry:
             matches.append({
                 "term": entry["term"],
+                "canonical": entry["canonical"],
                 "category": entry["category"],
                 "reason": entry["reason"],
                 "index": index,
@@ -80,12 +81,13 @@ def detect_matches(ingredient_list):
 
 
 def unique_terms(matches):
+    """Dedupes by canonical name, e.g. "hfcs" and "high fructose corn syrup" collapse to one entry."""
     seen = set()
     out = []
     for m in matches:
-        if m["term"] not in seen:
-            seen.add(m["term"])
-            out.append(m["term"])
+        if m["canonical"] not in seen:
+            seen.add(m["canonical"])
+            out.append(m["canonical"])
     return out
 
 

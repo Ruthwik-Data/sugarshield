@@ -2,145 +2,226 @@
 #
 # Faithful Python port of /home/user/sugarshield/lib/lexicon.ts
 # Keep this list in sync with the TypeScript source by hand; it is the
-# ground truth term list used to silver-label the bulk Open Food Facts
-# dataset the same way the live SugarShield rule engine would.
+# ground truth term list used to silver-label the bulk dataset the same way
+# the live SugarShield rule engine would.
+#
+# Two taxonomies, same as the TS source:
+#   - category    — the 5 functional buckets that drive scoring (unchanged
+#                   meaning: added_sugar / hidden_sugar / artificial_sweetener
+#                   / sugar_alcohol / natural_sugar_context).
+#   - subcategory — an 8-way display/audit taxonomy (added sugars, syrups,
+#                   glucose/fructose derivatives, malt-derived, fruit
+#                   concentrates used as sweeteners, sugar alcohols,
+#                   artificial/non-nutritive sweeteners, natural-sugar
+#                   context). Purely organizational.
+# `canonical` collapses true label synonyms of the same substance (e.g.
+# "hfcs" -> "high fructose corn syrup") so detected_sugars output is
+# consistent regardless of which alias matched.
+
+# Each tuple: (term, canonical, reason)
 
 ADDED_SUGAR = [
-    ("sugar", "Standard refined sugar (sucrose)."),
-    ("added sugar", "Explicitly labeled added sugar."),
-    ("cane sugar", "Refined sugar from sugar cane."),
-    ("brown sugar", "Refined sugar retaining some molasses."),
-    ("raw sugar", "Minimally refined cane sugar, still added sugar."),
-    ("turbinado sugar", "Partially refined cane sugar."),
-    ("demerara sugar", "Partially refined cane sugar."),
-    ("muscovado sugar", "Unrefined cane sugar high in molasses."),
-    ("powdered sugar", "Finely ground refined sugar."),
-    ("confectioner's sugar", "Finely ground refined sugar."),
-    ("icing sugar", "Finely ground refined sugar."),
-    ("sucrose", "Chemical name for table sugar."),
-    ("glucose", "Simple sugar, common added sweetener."),
-    ("fructose", "Fruit sugar, often added in crystalline form."),
-    ("crystalline fructose", "Highly concentrated added fructose."),
-    ("dextrose", "Simple sugar chemically identical to blood glucose."),
-    ("maltose", "Malt sugar, a disaccharide sweetener."),
-    ("corn syrup", "Liquid sweetener made from corn starch."),
-    ("high fructose corn syrup", "Highly processed corn syrup, high in fructose."),
-    ("hfcs", "Abbreviation for high fructose corn syrup."),
-    ("glucose syrup", "Liquid glucose sweetener."),
-    ("glucose-fructose syrup", "Blended liquid sweetener."),
-    ("maple syrup", "Natural syrup used as an added sweetener."),
-    ("agave syrup", "Concentrated syrup from agave, very high in fructose."),
-    ("agave nectar", "Concentrated syrup from agave, very high in fructose."),
-    ("molasses", "Byproduct of refining sugar cane or beets."),
-    ("blackstrap molasses", "Concentrated sugar-cane byproduct."),
-    ("invert sugar", "Processed liquid sugar blend of glucose and fructose."),
-    ("honey", "Natural sweetener that still counts as added sugar in a recipe."),
+    ("sugar", "sugar", "Standard refined sugar (sucrose)."),
+    ("added sugar", "sugar", "Explicitly labeled added sugar."),
+    ("cane sugar", "sugar", "Refined sugar from sugar cane."),
+    ("granulated sugar", "sugar", "Standard refined table sugar."),
+    ("table sugar", "sugar", "Standard refined table sugar."),
+    ("white sugar", "sugar", "Standard refined table sugar."),
+    ("refined sugar", "sugar", "Standard refined table sugar."),
+    ("beet sugar", "sugar", "Refined sugar from sugar beets, chemically identical to cane sugar."),
+    ("caster sugar", "sugar", "Finely ground refined sugar."),
+    ("superfine sugar", "sugar", "Finely ground refined sugar."),
+    ("sucrose", "sugar", "Chemical name for table sugar."),
+    ("brown sugar", "brown sugar", "Refined sugar retaining some molasses."),
+    ("light brown sugar", "brown sugar", "Refined sugar retaining some molasses."),
+    ("dark brown sugar", "brown sugar", "Refined sugar retaining more molasses."),
+    ("raw sugar", "raw sugar", "Minimally refined cane sugar, still added sugar."),
+    ("turbinado sugar", "turbinado sugar", "Partially refined cane sugar."),
+    ("demerara sugar", "demerara sugar", "Partially refined cane sugar with a light molasses coating."),
+    ("muscovado sugar", "muscovado sugar", "Unrefined cane sugar high in molasses."),
+    ("powdered sugar", "powdered sugar", "Finely ground refined sugar."),
+    ("confectioner's sugar", "powdered sugar", "Finely ground refined sugar."),
+    ("confectioners sugar", "powdered sugar", "Finely ground refined sugar."),
+    ("icing sugar", "powdered sugar", "Finely ground refined sugar."),
+    ("honey", "honey", "Natural sweetener that still counts as added sugar in a recipe."),
+    ("coconut sugar", "coconut sugar", "Added sugar derived from coconut palm sap."),
+    ("coconut palm sugar", "coconut sugar", "Added sugar derived from coconut palm sap."),
+    ("coconut nectar", "coconut nectar", "Added sugar syrup derived from coconut palm sap."),
+    ("palm sugar", "palm sugar", "Added sugar derived from palm sap."),
+    ("date sugar", "date sugar", "Added sugar made from dried, ground dates."),
+    ("jaggery", "jaggery", "Unrefined cane/palm sugar, common in South Asian cooking."),
+    ("gur", "jaggery", "Hindi/Urdu name for jaggery, an unrefined cane sugar."),
+    ("panela", "panela", "Unrefined whole cane sugar, common in Latin American cooking."),
+    ("piloncillo", "panela", "Mexican name for unrefined whole cane sugar (panela)."),
+    ("rapadura", "panela", "Brazilian name for unrefined whole cane sugar (panela)."),
+    ("liquid sugar", "liquid sugar", "Dissolved refined sugar used as a sweetener."),
     # "caramel" / "caramel color" deliberately omitted — see lib/lexicon.ts:
     # caramel color (E150) is a trace coloring agent (classically in diet
     # sodas) with negligible dietary sugar; keeping it caused false
     # "contains added sugar" positives on zero-sugar products.
-    ("malt syrup", "Sugar syrup derived from malted grain."),
-    ("barley malt", "Sugar syrup derived from malted barley."),
-    ("barley malt syrup", "Sugar syrup derived from malted barley."),
-    ("malt", "Malt-based sweetener or flavoring, often carries sugar."),
-    ("coconut sugar", "Added sugar derived from coconut palm sap."),
-    ("coconut nectar", "Added sugar syrup derived from coconut palm sap."),
-    ("date sugar", "Added sugar made from dried, ground dates."),
-    ("date syrup", "Added sugar syrup made from dates."),
-    ("palm sugar", "Added sugar derived from palm sap."),
-    ("sorghum syrup", "Added sugar syrup from sorghum cane."),
-    ("golden syrup", "Refined cane/beet sugar syrup."),
-    ("treacle", "Refined sugar syrup byproduct."),
-    ("liquid sugar", "Dissolved refined sugar used as a sweetener."),
-    ("refiner's syrup", "Byproduct syrup of sugar refining."),
 ]
 
-HIDDEN_SUGAR = [
-    ("maltodextrin", "Processed carbohydrate that spikes blood sugar like sugar, often used as a filler or sweetener."),
-    ("dextrin", "Processed starch derivative used as a hidden sweetener/thickener."),
-    ("corn syrup solids", "Dried corn syrup, a concentrated hidden sugar."),
-    ("brown rice syrup", "Processed sugar syrup marketed as a \"natural\" alternative."),
-    ("rice syrup", "Processed sugar syrup from rice starch."),
-    ("tapioca syrup", "Processed sugar syrup from tapioca starch."),
-    ("cane juice", "Marketing name for added cane sugar."),
-    ("evaporated cane juice", "Regulatory-flagged rebrand of added cane sugar."),
-    ("dehydrated cane juice", "Rebrand of added cane sugar."),
-    ("organic cane juice", "Rebrand of added cane sugar."),
-    ("fruit juice concentrate", "Concentrated fruit sugar with fiber removed, functions like added sugar."),
-    ("concentrated fruit juice", "Concentrated fruit sugar with fiber removed, functions like added sugar."),
-    ("fruit juice from concentrate", "Reconstituted concentrated fruit sugar."),
-    ("apple juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
-    ("pear juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
-    ("grape juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
-    ("white grape juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
+SYRUPS = [
+    ("corn syrup", "corn syrup", "Liquid sweetener made from corn starch."),
+    ("light corn syrup", "corn syrup", "Liquid sweetener made from corn starch."),
+    ("dark corn syrup", "corn syrup", "Liquid sweetener made from corn starch, with added molasses/caramel."),
+    ("high fructose corn syrup", "high fructose corn syrup", "Highly processed corn syrup, high in fructose."),
+    ("high-fructose corn syrup", "high fructose corn syrup", "Highly processed corn syrup, high in fructose."),
+    ("hfcs", "high fructose corn syrup", "Abbreviation for high fructose corn syrup."),
+    ("maple syrup", "maple syrup", "Natural syrup used as an added sweetener."),
+    ("golden syrup", "golden syrup", "Refined cane/beet sugar syrup."),
+    ("treacle", "treacle", "Refined sugar syrup byproduct, similar to molasses."),
+    ("refiner's syrup", "treacle", "Byproduct syrup of sugar refining (treacle)."),
+    ("agave syrup", "agave syrup", "Concentrated syrup from agave, very high in fructose."),
+    ("agave nectar", "agave syrup", "Concentrated syrup from agave, very high in fructose."),
+    ("blue agave syrup", "agave syrup", "Concentrated syrup from agave, very high in fructose."),
+    ("molasses", "molasses", "Byproduct of refining sugar cane or beets."),
+    ("blackstrap molasses", "molasses", "Concentrated sugar-cane byproduct."),
+    ("cane syrup", "cane syrup", "Syrup made by boiling down sugar cane juice."),
+    ("sorghum syrup", "sorghum syrup", "Added sugar syrup from sorghum cane."),
+    ("sorghum molasses", "sorghum syrup", "Added sugar syrup from sorghum cane."),
+    ("date syrup", "date syrup", "Added sugar syrup made from dates."),
+    ("invert sugar", "invert sugar", "Processed liquid sugar blend of glucose and fructose."),
+    ("inverted sugar syrup", "invert sugar", "Processed liquid sugar blend of glucose and fructose."),
+]
+
+GLUCOSE_FRUCTOSE_DERIVATIVES = [
+    ("glucose", "glucose", "Simple sugar, common added sweetener."),
+    ("glucose syrup", "glucose syrup", "Liquid glucose sweetener."),
+    ("glucose-fructose syrup", "glucose-fructose syrup", "Blended liquid sweetener (the EU/UK equivalent of HFCS)."),
+    ("isoglucose", "glucose-fructose syrup", "EU regulatory name for a glucose-fructose syrup equivalent to HFCS."),
+    ("dextrose", "dextrose", "Simple sugar chemically identical to blood glucose."),
+    ("dextrose monohydrate", "dextrose", "Simple sugar chemically identical to blood glucose."),
+    ("anhydrous dextrose", "dextrose", "Simple sugar chemically identical to blood glucose."),
+    ("fructose", "fructose", "Fruit sugar, often added in crystalline form."),
+    ("crystalline fructose", "fructose", "Highly concentrated added fructose."),
+    ("levulose", "fructose", "Older chemical name for fructose."),
+    ("maltose", "maltose", "Malt sugar, a disaccharide sweetener."),
+    ("malt sugar", "maltose", "Malt sugar, a disaccharide sweetener."),
+    ("galactose", "galactose", "Simple sugar, sometimes added or a hydrolysis product of lactose."),
+    ("trehalose", "trehalose", "Disaccharide sweetener used as a stabilizer/sweetener."),
+]
+
+MALT_DERIVED = [
+    ("malt syrup", "malt syrup", "Sugar syrup derived from malted grain."),
+    ("barley malt", "barley malt syrup", "Sugar syrup derived from malted barley."),
+    ("barley malt syrup", "barley malt syrup", "Sugar syrup derived from malted barley."),
+    ("malted barley", "barley malt syrup", "Sugar syrup derived from malted barley."),
+    ("malt extract", "malt extract", "Concentrated malt-derived sweetener/flavoring."),
+    ("diastatic malt powder", "malt extract", "Malt-derived sweetener/leavening aid."),
+    ("malt", "malt", "Malt-based sweetener or flavoring, often carries sugar."),
+]
+
+FRUIT_CONCENTRATE_SWEETENERS = [
+    ("fruit juice concentrate", "fruit juice concentrate", "Concentrated fruit sugar with fiber removed, functions like added sugar."),
+    ("concentrated fruit juice", "fruit juice concentrate", "Concentrated fruit sugar with fiber removed, functions like added sugar."),
+    ("dried fruit juice concentrate", "fruit juice concentrate", "Concentrated fruit sugar with fiber removed, functions like added sugar."),
+    ("fruit juice from concentrate", "fruit juice concentrate", "Reconstituted concentrated fruit sugar."),
+    ("apple juice concentrate", "apple juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
+    ("pear juice concentrate", "pear juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
+    ("grape juice concentrate", "grape juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
+    ("white grape juice concentrate", "white grape juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
+    ("pineapple juice concentrate", "pineapple juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
+    ("pear puree concentrate", "pear juice concentrate", "Concentrated fruit sugar used as a hidden sweetener/binder."),
+    ("cane juice", "evaporated cane juice", "Marketing name for added cane sugar."),
+    ("evaporated cane juice", "evaporated cane juice", "Regulatory-flagged rebrand of added cane sugar."),
+    ("dehydrated cane juice", "evaporated cane juice", "Rebrand of added cane sugar."),
+    ("organic cane juice", "evaporated cane juice", "Rebrand of added cane sugar."),
+]
+
+# Hidden-sugar processing signals that aren't syrups/concentrates
+HIDDEN_SUGAR_OTHER = [
+    ("maltodextrin", "maltodextrin", "Processed carbohydrate that spikes blood sugar like sugar, often used as a filler or sweetener."),
+    ("corn syrup solids", "corn syrup solids", "Dried corn syrup, a concentrated hidden sugar."),
+    ("brown rice syrup", "brown rice syrup", "Processed sugar syrup marketed as a \"natural\" alternative."),
+    ("rice syrup", "rice syrup", "Processed sugar syrup from rice starch."),
+    ("rice bran syrup", "rice syrup", "Processed sugar syrup from rice bran starch."),
+    ("tapioca syrup", "tapioca syrup", "Processed sugar syrup from tapioca starch."),
+    ("dextrin", "dextrin", "Processed starch derivative used as a hidden sweetener/thickener."),
+    ("tapioca dextrin", "dextrin", "Processed starch derivative used as a hidden sweetener/thickener."),
+    ("corn dextrin", "dextrin", "Processed starch derivative used as a hidden sweetener/thickener."),
 ]
 
 ARTIFICIAL_SWEETENER = [
-    ("aspartame", "Artificial non-nutritive sweetener (~200x sweeter than sugar)."),
-    ("sucralose", "Artificial non-nutritive sweetener."),
-    ("saccharin", "Artificial non-nutritive sweetener."),
-    ("acesulfame potassium", "Artificial non-nutritive sweetener."),
-    ("acesulfame k", "Artificial non-nutritive sweetener."),
-    ("ace-k", "Artificial non-nutritive sweetener."),
-    ("neotame", "Artificial non-nutritive sweetener related to aspartame."),
-    ("advantame", "Artificial non-nutritive sweetener related to aspartame."),
-    ("cyclamate", "Artificial non-nutritive sweetener."),
+    ("aspartame", "aspartame", "Artificial non-nutritive sweetener (~200x sweeter than sugar)."),
+    ("sucralose", "sucralose", "Artificial non-nutritive sweetener."),
+    ("saccharin", "saccharin", "Artificial non-nutritive sweetener."),
+    ("acesulfame potassium", "acesulfame potassium", "Artificial non-nutritive sweetener."),
+    ("acesulfame k", "acesulfame potassium", "Artificial non-nutritive sweetener."),
+    ("ace-k", "acesulfame potassium", "Artificial non-nutritive sweetener."),
+    ("neotame", "neotame", "Artificial non-nutritive sweetener related to aspartame."),
+    ("advantame", "advantame", "Artificial non-nutritive sweetener related to aspartame."),
+    ("cyclamate", "cyclamate", "Artificial non-nutritive sweetener."),
+    ("sodium cyclamate", "cyclamate", "Artificial non-nutritive sweetener."),
+    ("tagatose", "tagatose", "Low-calorie rare sugar used as a non-nutritive sweetener."),
 ]
 
 PLANT_SWEETENER = [
-    ("stevia", "Plant-derived non-nutritive sweetener."),
-    ("stevia leaf extract", "Plant-derived non-nutritive sweetener."),
-    ("rebaudioside a", "Purified stevia sweetener compound."),
-    ("reb a", "Purified stevia sweetener compound."),
-    ("monk fruit", "Plant-derived non-nutritive sweetener."),
-    ("monk fruit extract", "Plant-derived non-nutritive sweetener."),
-    ("luo han guo", "Monk fruit, a plant-derived non-nutritive sweetener."),
-    ("allulose", "Rare sugar with minimal caloric/glycemic impact, used as a sweetener."),
+    ("stevia", "stevia", "Plant-derived non-nutritive sweetener."),
+    ("stevia leaf extract", "stevia", "Plant-derived non-nutritive sweetener."),
+    ("stevia extract", "stevia", "Plant-derived non-nutritive sweetener."),
+    ("rebaudioside a", "stevia", "Purified stevia sweetener compound."),
+    ("reb a", "stevia", "Purified stevia sweetener compound."),
+    ("monk fruit", "monk fruit", "Plant-derived non-nutritive sweetener."),
+    ("monk fruit extract", "monk fruit", "Plant-derived non-nutritive sweetener."),
+    ("luo han guo", "monk fruit", "Monk fruit, a plant-derived non-nutritive sweetener."),
+    ("allulose", "allulose", "Rare sugar with minimal caloric/glycemic impact, used as a sweetener."),
 ]
 
 SUGAR_ALCOHOL = [
-    ("erythritol", "Sugar alcohol with negligible calories/glycemic impact."),
-    ("xylitol", "Sugar alcohol sweetener."),
-    ("sorbitol", "Sugar alcohol sweetener."),
-    ("maltitol", "Sugar alcohol sweetener with a moderate glycemic impact."),
-    ("mannitol", "Sugar alcohol sweetener."),
-    ("isomalt", "Sugar alcohol sweetener."),
-    ("lactitol", "Sugar alcohol sweetener."),
+    ("erythritol", "erythritol", "Sugar alcohol with negligible calories/glycemic impact."),
+    ("xylitol", "xylitol", "Sugar alcohol sweetener."),
+    ("sorbitol", "sorbitol", "Sugar alcohol sweetener."),
+    ("maltitol", "maltitol", "Sugar alcohol sweetener with a moderate glycemic impact."),
+    ("maltitol syrup", "maltitol", "Sugar alcohol sweetener with a moderate glycemic impact."),
+    ("mannitol", "mannitol", "Sugar alcohol sweetener."),
+    ("isomalt", "isomalt", "Sugar alcohol sweetener."),
+    ("lactitol", "lactitol", "Sugar alcohol sweetener."),
+    ("hydrogenated starch hydrolysate", "hydrogenated starch hydrolysate", "Mixture of sugar alcohols used as a bulk sweetener."),
 ]
 
 NATURAL_SUGAR_CONTEXT = [
-    ("milk", "Contains naturally occurring lactose."),
-    ("whole milk", "Contains naturally occurring lactose."),
-    ("nonfat milk", "Contains naturally occurring lactose."),
-    ("skim milk", "Contains naturally occurring lactose."),
-    ("lactose", "Naturally occurring milk sugar."),
-    ("cultured milk", "Contains naturally occurring lactose."),
-    ("cultured pasteurized nonfat milk", "Plain yogurt base; naturally occurring lactose only."),
-    ("yogurt cultures", "Fermentation culture, not an added sweetener."),
-    ("coconut water", "Contains naturally occurring fruit sugars."),
-    ("apple", "Whole-fruit form; naturally occurring sugar with fiber intact."),
-    ("banana", "Whole-fruit form; naturally occurring sugar with fiber intact."),
-    ("orange", "Whole-fruit form; naturally occurring sugar with fiber intact."),
-    ("strawberry", "Whole-fruit form; naturally occurring sugar with fiber intact."),
-    ("blueberry", "Whole-fruit form; naturally occurring sugar with fiber intact."),
-    ("raisin", "Dried whole fruit; naturally occurring sugar with fiber intact."),
-    ("date", "Whole fruit; naturally occurring sugar with fiber intact."),
-    ("100% fruit juice", "Naturally occurring fruit sugar, not a concentrate."),
+    ("milk", "milk", "Contains naturally occurring lactose."),
+    ("whole milk", "milk", "Contains naturally occurring lactose."),
+    ("nonfat milk", "milk", "Contains naturally occurring lactose."),
+    ("skim milk", "milk", "Contains naturally occurring lactose."),
+    ("lactose", "lactose", "Naturally occurring milk sugar."),
+    ("cultured milk", "milk", "Contains naturally occurring lactose."),
+    ("cultured pasteurized nonfat milk", "milk", "Plain yogurt base; naturally occurring lactose only."),
+    ("yogurt cultures", "yogurt cultures", "Fermentation culture, not an added sweetener."),
+    ("coconut water", "coconut water", "Contains naturally occurring fruit sugars."),
+    ("apple", "whole fruit", "Whole-fruit form; naturally occurring sugar with fiber intact."),
+    ("banana", "whole fruit", "Whole-fruit form; naturally occurring sugar with fiber intact."),
+    ("orange", "whole fruit", "Whole-fruit form; naturally occurring sugar with fiber intact."),
+    ("strawberry", "whole fruit", "Whole-fruit form; naturally occurring sugar with fiber intact."),
+    ("blueberry", "whole fruit", "Whole-fruit form; naturally occurring sugar with fiber intact."),
+    ("raisin", "dried fruit", "Dried whole fruit; naturally occurring sugar with fiber intact."),
+    ("date", "dried fruit", "Whole fruit; naturally occurring sugar with fiber intact."),
+    ("100% fruit juice", "fruit juice (not concentrate)", "Naturally occurring fruit sugar, not a concentrate."),
 ]
 
 LEXICON = []
-for term, reason in ADDED_SUGAR:
-    LEXICON.append({"term": term, "category": "added_sugar", "reason": reason})
-for term, reason in HIDDEN_SUGAR:
-    LEXICON.append({"term": term, "category": "hidden_sugar", "reason": reason})
-for term, reason in ARTIFICIAL_SWEETENER:
-    LEXICON.append({"term": term, "category": "artificial_sweetener", "reason": reason})
-for term, reason in PLANT_SWEETENER:
-    LEXICON.append({"term": term, "category": "artificial_sweetener", "reason": reason})
-for term, reason in SUGAR_ALCOHOL:
-    LEXICON.append({"term": term, "category": "sugar_alcohol", "reason": reason})
-for term, reason in NATURAL_SUGAR_CONTEXT:
-    LEXICON.append({"term": term, "category": "natural_sugar_context", "reason": reason})
+for term, canonical, reason in ADDED_SUGAR:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "added_sugar", "subcategory": "added_sugar_basic", "reason": reason})
+for term, canonical, reason in SYRUPS:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "added_sugar", "subcategory": "syrup", "reason": reason})
+for term, canonical, reason in GLUCOSE_FRUCTOSE_DERIVATIVES:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "added_sugar", "subcategory": "glucose_fructose_derivative", "reason": reason})
+for term, canonical, reason in MALT_DERIVED:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "added_sugar", "subcategory": "malt_derived", "reason": reason})
+for term, canonical, reason in FRUIT_CONCENTRATE_SWEETENERS:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "hidden_sugar", "subcategory": "fruit_concentrate_sweetener", "reason": reason})
+for term, canonical, reason in HIDDEN_SUGAR_OTHER:
+    subcat = "syrup" if "syrup" in canonical else "glucose_fructose_derivative"
+    LEXICON.append({"term": term, "canonical": canonical, "category": "hidden_sugar", "subcategory": subcat, "reason": reason})
+for term, canonical, reason in ARTIFICIAL_SWEETENER:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "artificial_sweetener", "subcategory": "artificial_nonnutritive", "reason": reason})
+for term, canonical, reason in PLANT_SWEETENER:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "artificial_sweetener", "subcategory": "artificial_nonnutritive", "reason": reason})
+for term, canonical, reason in SUGAR_ALCOHOL:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "sugar_alcohol", "subcategory": "sugar_alcohol", "reason": reason})
+for term, canonical, reason in NATURAL_SUGAR_CONTEXT:
+    LEXICON.append({"term": term, "canonical": canonical, "category": "natural_sugar_context", "subcategory": "natural_sugar_context", "reason": reason})
 
 # Sort longest-term-first so multi-word terms are matched before their
 # single-word substrings (e.g. "high fructose corn syrup" before "corn syrup").

@@ -27,6 +27,7 @@ import time
 sys.path.insert(0, os.path.dirname(__file__))
 from schema import RISK_LEVELS, RISK_RANK, is_valid_prediction  # noqa: E402
 from model_io import load_model, generate_json  # noqa: E402
+from hallucination_guard import build_canonical_alias_map, filter_supported_terms  # noqa: E402
 
 
 def load_jsonl(path):
@@ -37,6 +38,36 @@ def load_jsonl(path):
             if line:
                 records.append(json.loads(line))
     return records
+
+
+def normalize_gold_record(g):
+    """The independent gold set (data/independent_gold/independent_gold.jsonl)
+    uses different field names than the original gold set
+    (data/gold/gold.jsonl) — see data/independent_gold/README.md for why
+    (labels were derived independently, not by running risk_engine.py).
+    Normalizes to the field names compute_metrics()/main() expect below,
+    without mutating the source file. A record already in the original
+    schema (has "risk_level") passes through unchanged.
+
+    Note: the independent set's `hidden_sugar_terms` only covers non-obvious
+    sugar names (an added-sugar record with just plain "sugar" has an empty
+    list — see README), unlike the original set's `detected_sugars`, which
+    includes every detected term. So trigger_match_accuracy on the
+    independent benchmark measures hidden-term recall specifically, not
+    all-term recall — an intentional, honest narrowing, not a bug.
+    """
+    if "risk_level" in g:
+        return g
+    out = dict(g)
+    out["risk_level"] = g["expected_risk"]
+    hidden_terms = g.get("hidden_sugar_terms") or []
+    out["contains_hidden_sugar"] = bool(hidden_terms)
+    out["detected_sugars"] = hidden_terms
+    sweeteners = g.get("artificial_or_nonnutritive_sweeteners") or []
+    out["artificial_sweeteners"] = sweeteners
+    out["contains_artificial_sweetener"] = bool(sweeteners)
+    out["contains_natural_sugar"] = bool(g.get("natural_sugar_context"))
+    return out
 
 
 def import_rule_engine(data_scripts_dir):
@@ -64,7 +95,7 @@ def rule_predict(risk_engine_mod, record, mode="STRICT"):
     }
 
 
-def model_predict(model, tokenizer, record, max_new_tokens=128):
+def model_predict(model, tokenizer, record, canonical_alias_map, max_new_tokens=128):
     result = generate_json(
         model,
         tokenizer,
@@ -88,17 +119,32 @@ def model_predict(model, tokenizer, record, max_new_tokens=128):
             "latency_ms": result["latency_ms"],
             "valid_json": False,
             "raw_output": result["raw_output"],
+            "hallucinated_terms_dropped": [],
         }
+
+    ingredients_raw = record.get("ingredients_raw") or ""
+    claimed_sugars = list(parsed.get("detected_sugars") or [])
+    claimed_sweeteners = list(parsed.get("artificial_sweeteners") or [])
+    kept_sugars, dropped_sugars = filter_supported_terms(claimed_sugars, ingredients_raw, canonical_alias_map)
+    kept_sweeteners, dropped_sweeteners = filter_supported_terms(claimed_sweeteners, ingredients_raw, canonical_alias_map)
+    dropped = dropped_sugars + dropped_sweeteners
+    if dropped:
+        print(f"  [hallucination guard] dropped unsupported claim(s) not found in ingredients: {dropped}", flush=True)
+
     return {
         "riskLevel": parsed["risk_level"],
-        "containsAddedSugar": bool(parsed["contains_added_sugar"]),
-        "containsHiddenSugar": bool(parsed["contains_hidden_sugar"]),
-        "containsArtificialSweetener": bool(parsed["contains_artificial_sweetener"]),
+        # A hallucinated claim can't be trusted to justify the flags it would
+        # otherwise support either — if every claimed sugar term was rejected,
+        # containsAddedSugar/etc. must not stand on nothing.
+        "containsAddedSugar": bool(parsed["contains_added_sugar"]) and bool(kept_sugars or not claimed_sugars),
+        "containsHiddenSugar": bool(parsed["contains_hidden_sugar"]) and bool(kept_sugars or not claimed_sugars),
+        "containsArtificialSweetener": bool(parsed["contains_artificial_sweetener"]) and bool(kept_sweeteners or not claimed_sweeteners),
         "containsNaturalSugar": bool(parsed["contains_natural_sugar"]),
-        "detectedSugars": list(parsed.get("detected_sugars") or []),
-        "artificialSweeteners": list(parsed.get("artificial_sweeteners") or []),
+        "detectedSugars": kept_sugars,
+        "artificialSweeteners": kept_sweeteners,
         "explanation": parsed.get("explanation"),
         "latency_ms": result["latency_ms"],
+        "hallucinated_terms_dropped": dropped,
         "valid_json": True,
         "raw_output": result["raw_output"],
     }
@@ -238,8 +284,10 @@ def main():
         sys.exit(1)
     if args.limit and args.limit > 0:
         gold_records = gold_records[: args.limit]
+    gold_records = [normalize_gold_record(g) for g in gold_records]
 
     risk_engine_mod = import_rule_engine(os.path.abspath(args.data_scripts_dir))
+    canonical_alias_map = build_canonical_alias_map(risk_engine_mod.LEXICON_BY_LENGTH)
 
     print(f"Loading checkpoint from {args.checkpoint} ...", flush=True)
     load_start = time.time()
@@ -253,7 +301,7 @@ def main():
     for i, g in enumerate(gold_records, start=1):
         sample_start = time.time()
         rp = rule_predict(risk_engine_mod, g, mode="STRICT")
-        mp = model_predict(model, tokenizer, g, max_new_tokens=args.max_new_tokens)
+        mp = model_predict(model, tokenizer, g, canonical_alias_map, max_new_tokens=args.max_new_tokens)
         hp = reconcile_hybrid(rp, mp)
         rule_preds.append(rp)
         model_preds.append(mp)
