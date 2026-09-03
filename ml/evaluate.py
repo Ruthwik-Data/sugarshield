@@ -64,9 +64,14 @@ def rule_predict(risk_engine_mod, record, mode="STRICT"):
     }
 
 
-def model_predict(model, tokenizer, record):
+def model_predict(model, tokenizer, record, max_new_tokens=128):
     result = generate_json(
-        model, tokenizer, record.get("product_name"), record.get("ingredients_raw"), record.get("nutrition")
+        model,
+        tokenizer,
+        record.get("product_name"),
+        record.get("ingredients_raw"),
+        record.get("nutrition"),
+        max_new_tokens=max_new_tokens,
     )
     parsed = result["parsed"]
     valid = is_valid_prediction(parsed)
@@ -203,25 +208,66 @@ def main():
     ap.add_argument("--checkpoint", default="./checkpoints/sugarshield-v1")
     ap.add_argument("--data_scripts_dir", default="../data/scripts")
     ap.add_argument("--results_dir", default="./results")
-    ap.add_argument("--sample_n", type=int, default=12)
+    ap.add_argument(
+        "--sample_n",
+        type=int,
+        default=12,
+        help="How many records go into sample_predictions.json. Does NOT change how many gold "
+        "records are actually evaluated for the benchmark metrics — use --limit for that.",
+    )
+    ap.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Evaluate only the first N gold records (0 = all). For a fast smoke-test of a slow "
+        "model/device before committing to the full run, e.g. --limit 5.",
+    )
+    ap.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
+    ap.add_argument(
+        "--max_new_tokens",
+        type=int,
+        default=128,
+        help="Generation cap per sample. 128 covers the schema's realistic JSON+explanation "
+        "length with headroom — see model_io.generate_json's docstring for the sizing.",
+    )
     args = ap.parse_args()
 
     gold_records = load_jsonl(args.gold)
     if not gold_records:
         print(f"ERROR: no gold records at {args.gold}", file=sys.stderr)
         sys.exit(1)
+    if args.limit and args.limit > 0:
+        gold_records = gold_records[: args.limit]
 
     risk_engine_mod = import_rule_engine(os.path.abspath(args.data_scripts_dir))
-    model, tokenizer = load_model(args.checkpoint)
 
+    print(f"Loading checkpoint from {args.checkpoint} ...", flush=True)
+    load_start = time.time()
+    model, tokenizer = load_model(args.checkpoint, device=args.device)
+    resolved_device = getattr(model, "_sugarshield_device", "unknown")
+    print(f"Checkpoint loaded in {time.time() - load_start:.1f}s on device={resolved_device}", flush=True)
+
+    n_total = len(gold_records)
     rule_preds, model_preds, hybrid_preds = [], [], []
-    for g in gold_records:
+    eval_start = time.time()
+    for i, g in enumerate(gold_records, start=1):
+        sample_start = time.time()
         rp = rule_predict(risk_engine_mod, g, mode="STRICT")
-        mp = model_predict(model, tokenizer, g)
+        mp = model_predict(model, tokenizer, g, max_new_tokens=args.max_new_tokens)
         hp = reconcile_hybrid(rp, mp)
         rule_preds.append(rp)
         model_preds.append(mp)
         hybrid_preds.append(hp)
+
+        elapsed = time.time() - eval_start
+        avg_per_sample = elapsed / i
+        eta_s = avg_per_sample * (n_total - i)
+        status = "valid" if mp["valid_json"] else f"INVALID JSON, raw={mp.get('raw_output', '')[:60]!r}"
+        print(
+            f"[{i}/{n_total}] {g.get('id', '?')} — model {mp['latency_ms']:.0f}ms ({status}) "
+            f"— sample {time.time() - sample_start:.1f}s, elapsed {elapsed:.0f}s, ETA {eta_s:.0f}s",
+            flush=True,
+        )
 
     benchmark = {
         "generated_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),

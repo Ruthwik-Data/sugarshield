@@ -18,7 +18,22 @@ sys.path.insert(0, os.path.dirname(__file__))
 from schema import build_prompt, extract_first_json  # noqa: E402
 
 
-def load_model(checkpoint_dir):
+def resolve_device(requested="auto"):
+    """Same resolution order as train.py's resolve_device — kept as an
+    independent copy (not imported) so model_io.py has no import-time
+    dependency on argparse-only code in train.py."""
+    import torch
+
+    if requested != "auto":
+        return requested
+    if torch.cuda.is_available():
+        return "cuda"
+    if getattr(torch.backends, "mps", None) is not None and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
+def load_model(checkpoint_dir, device="auto"):
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     if not os.path.isdir(checkpoint_dir) or not os.listdir(checkpoint_dir):
@@ -26,6 +41,8 @@ def load_model(checkpoint_dir):
             f"No trained checkpoint found at {checkpoint_dir}. Run prepare_dataset.py and "
             "train.py first — evaluate.py/infer.py must never fall back to an untrained model."
         )
+
+    resolved_device = resolve_device(device)
 
     # AutoTokenizer works uniformly here: train.py's tokenizer.save_pretrained(output_dir)
     # persists whichever tokenizer was actually used (our custom BPE one for the
@@ -37,6 +54,10 @@ def load_model(checkpoint_dir):
     # huggingface.co at the TCP level.
     tokenizer = AutoTokenizer.from_pretrained(checkpoint_dir, local_files_only=True)
 
+    # torch_dtype="auto" reuses whatever dtype the checkpoint itself was saved/trained in
+    # (e.g. bf16 for a Mac LoRA run) instead of transformers' from_pretrained default of
+    # upcasting to fp32, which roughly doubles both memory and generation time for no
+    # accuracy benefit at inference time.
     is_unmerged_lora_adapter = os.path.exists(os.path.join(checkpoint_dir, "adapter_config.json"))
     if is_unmerged_lora_adapter:
         # train.py's --use_lora path saves only the (small) adapter, not the
@@ -46,15 +67,33 @@ def load_model(checkpoint_dir):
         # behavior without requiring a separate merge step first.
         from peft import AutoPeftModelForCausalLM
 
-        model = AutoPeftModelForCausalLM.from_pretrained(checkpoint_dir, local_files_only=True)
+        model = AutoPeftModelForCausalLM.from_pretrained(checkpoint_dir, local_files_only=True, torch_dtype="auto")
     else:
-        model = AutoModelForCausalLM.from_pretrained(checkpoint_dir, local_files_only=True)
+        model = AutoModelForCausalLM.from_pretrained(checkpoint_dir, local_files_only=True, torch_dtype="auto")
+
+    # This is the fix for the 25-minutes-on-MPS report: from_pretrained() alone never
+    # moves the model off CPU, no matter what hardware trained it — a real GPU/MPS box
+    # that skips this line silently runs every generate() call on CPU instead.
+    model.to(resolved_device)
     model.eval()
+    model._sugarshield_device = resolved_device
     return model, tokenizer
 
 
-def generate_json(model, tokenizer, product_name, ingredients_raw, nutrition=None, seq_len=None, max_new_tokens=150):
+def generate_json(model, tokenizer, product_name, ingredients_raw, nutrition=None, seq_len=None, max_new_tokens=128):
+    """max_new_tokens=128 is a measured ceiling, not a guess: the schema's target JSON
+    (schema.build_target) truncates `explanation` to 220 chars, and the full worst-case
+    payload (every boolean true, 3 detected_sugars, 2 artificial_sweeteners, a maxed-out
+    explanation) is 556 characters — at a conservative ~2.5 chars/token for dense,
+    punctuation-heavy JSON that's ~223 tokens, but real explanations from the rule engine
+    (what the model was trained to imitate) run 60-150 chars, not the full 220-char cap,
+    so 128 covers the realistic case with headroom. Lower this further (e.g. 96) once you
+    can see your own model's typical raw_output length in the per-sample logs and confirm
+    it isn't truncating valid JSON.
+    """
     import torch
+
+    device = getattr(model, "_sugarshield_device", None) or str(next(model.parameters()).device)
 
     model_max_positions = getattr(model.config, "n_positions", None) or getattr(model.config, "max_position_embeddings", 256)
     seq_len = seq_len or model_max_positions
@@ -63,12 +102,13 @@ def generate_json(model, tokenizer, product_name, ingredients_raw, nutrition=Non
     # Leave room for at least a few generated tokens even for a long prompt.
     prompt_budget = max(8, model_max_positions - 8)
     inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=min(seq_len, prompt_budget))
+    inputs = {k: v.to(device) for k, v in inputs.items()}
 
     prompt_len = inputs["input_ids"].shape[1]
     safe_new_tokens = max(1, min(max_new_tokens, model_max_positions - prompt_len))
 
     start = time.time()
-    with torch.no_grad():
+    with torch.inference_mode():
         output_ids = model.generate(
             **inputs,
             max_new_tokens=safe_new_tokens,
@@ -87,4 +127,5 @@ def generate_json(model, tokenizer, product_name, ingredients_raw, nutrition=Non
         "raw_output": generated.strip(),
         "parsed": parsed,
         "latency_ms": latency_ms,
+        "generated_tokens": output_ids.shape[1] - prompt_len,
     }

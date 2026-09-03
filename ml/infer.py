@@ -24,15 +24,18 @@ def main():
     ap.add_argument("--total_sugars_g", type=float, default=None)
     ap.add_argument("--added_sugars_g", type=float, default=None)
     ap.add_argument("--serving_size", default=None)
+    ap.add_argument("--device", default="auto", choices=["auto", "cpu", "mps", "cuda"])
+    ap.add_argument("--max_new_tokens", type=int, default=128)
     args = ap.parse_args()
 
-    model, tokenizer = load_model(args.checkpoint)
+    model, tokenizer = load_model(args.checkpoint, device=args.device)
+    print(f"Loaded on device={getattr(model, '_sugarshield_device', 'unknown')}", file=sys.stderr)
     nutrition = {
         "serving_size": args.serving_size,
         "total_sugars_g": args.total_sugars_g,
         "added_sugars_g": args.added_sugars_g,
     }
-    result = generate_json(model, tokenizer, args.product, args.ingredients, nutrition)
+    result = generate_json(model, tokenizer, args.product, args.ingredients, nutrition, max_new_tokens=args.max_new_tokens)
     print(json.dumps(result, indent=2))
 
 

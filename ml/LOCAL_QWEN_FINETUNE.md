@@ -93,7 +93,33 @@ is the from-scratch run's reference config specifically, not this one.
 
 `model_io.py` auto-detects an unmerged LoRA adapter (`adapter_config.json`)
 and loads it correctly via `AutoPeftModelForCausalLM` — no merge needed to
-evaluate:
+evaluate. Every sample prints progress as it runs (device, per-sample
+latency, elapsed/ETA) — it should never look hung with no output.
+
+**Smoke-test on 5 records first** (a minute or two, not tens of minutes) to
+confirm the checkpoint loads on MPS and produces valid JSON before
+committing to the full 59-record gold set:
+
+```bash
+python3 evaluate.py \
+  --gold ../data/gold/gold.jsonl \
+  --checkpoint ./checkpoints/sugarshield-qwen2.5-1.5b \
+  --data_scripts_dir ../data/scripts \
+  --results_dir ./results_qwen_smoketest \
+  --limit 5 --device auto --max_new_tokens 128
+```
+
+Watch the first log line: `Checkpoint loaded ... on device=mps`. If it says
+`device=cpu` on a Mac with Apple Silicon, something's wrong upstream (e.g.
+`torch.backends.mps.is_available()` returning `False` — see the earlier
+sanity-check command) — every sample will be 10-20x slower than it needs to
+be. `--limit N` evaluates only the first N gold records (for real, unlike
+`--sample_n`, which only controls how many go into
+`sample_predictions.json` at the end — the two flags are independent, don't
+confuse them for the same thing).
+
+Once the smoke test looks right, run the full gold set (still just a
+couple of minutes on MPS for 59 records with a 1.5B model):
 
 ```bash
 python3 evaluate.py \
@@ -230,7 +256,7 @@ python3 train.py --prepared_dir ./prepared_qwen --output_dir ./checkpoints/sugar
   --lora_r 8 --lora_alpha 16 --lora_target_modules q_proj,v_proj --epochs 1 --batch_size 2 --grad_accum 8 \
   --results_dir ./results_qwen
 python3 evaluate.py --gold ../data/gold/gold.jsonl --checkpoint ./checkpoints/sugarshield-qwen2.5-1.5b \
-  --data_scripts_dir ../data/scripts --results_dir ./results_qwen
+  --data_scripts_dir ../data/scripts --results_dir ./results_qwen --device auto --max_new_tokens 128
 python3 merge_lora.py --adapter ./checkpoints/sugarshield-qwen2.5-1.5b \
   --output ./checkpoints/sugarshield-qwen2.5-1.5b-merged
 git clone --depth 1 https://github.com/ggml-org/llama.cpp ../../llama.cpp-tmp
