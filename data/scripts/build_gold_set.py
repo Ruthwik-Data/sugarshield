@@ -309,6 +309,29 @@ def main():
         seen.add(r["id"])
         final.append(r)
 
+    # Every curated/isolated/general-coverage pick above was copied straight
+    # from data/processed/all_records.jsonl, whose risk_level etc. now come
+    # from label_records.py's _apply_sweetener_only_calibration() override
+    # (a Fine-tune V2 Loop 2 correction meant only for training targets, see
+    # that function's docstring). Gold must stay what its own docstring
+    # promises -- "every record is run through the SAME ported risk_engine
+    # used for the bulk data" -- i.e. the *uncalibrated* production engine,
+    # so it keeps measuring exactly what's live today and rule_baseline
+    # stays internally consistent with it. Recompute fresh here rather than
+    # trusting whatever fields the pool copy happened to carry.
+    for r in final:
+        if r["source"] != "grocerydb":
+            continue
+        result = analyze_ingredients_text(r["ingredients_raw"], mode="STRICT")
+        r["contains_added_sugar"] = result["containsAddedSugar"]
+        r["contains_hidden_sugar"] = result["containsHiddenSugar"]
+        r["contains_artificial_sweetener"] = result["containsArtificialSweetener"]
+        r["contains_natural_sugar"] = result["containsNaturalSugar"]
+        r["detected_sugars"] = result["detectedSugars"]
+        r["artificial_sweeteners"] = result["artificialSweeteners"]
+        r["risk_level"] = result["riskLevel"]
+        r["explanation"] = result["explanation"]
+
     with open(GOLD_OUT_PATH, "w") as f:
         for r in final:
             f.write(json.dumps(r) + "\n")

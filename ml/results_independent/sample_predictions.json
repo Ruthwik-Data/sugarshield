@@ -25,7 +25,7 @@
         "sucralose"
       ],
       "explanation": "Contains non-nutritive sweeteners (aspartame, acesulfame potassium, sucralose).",
-      "latency_ms": 0.4379749298095703,
+      "latency_ms": 0.4277229309082031,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -40,7 +40,7 @@
         "acesulfame potassium"
       ],
       "explanation": "Contains non-nutritive sweeteners (sucralose, acesulfame potassium).",
-      "latency_ms": 377.49552726745605,
+      "latency_ms": 289.29638862609863,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"MODERATE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":true,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[\"sucralose\",\"acesulfame potassium\"],\"confidence\":0.7,\"explanation\":\"Contains non-nutritive sweeteners (sucralose, acesulfame potassium).\"}"
@@ -58,7 +58,7 @@
         "sucralose"
       ],
       "explanation": "Contains non-nutritive sweeteners (aspartame, acesulfame potassium, sucralose).",
-      "latency_ms": 377.9335021972656,
+      "latency_ms": 289.72411155700684,
       "valid_json": true
     }
   },
@@ -82,7 +82,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (high fructose corn syrup).",
-      "latency_ms": 0.2396106719970703,
+      "latency_ms": 0.247955322265625,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -96,7 +96,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (high fructose corn syrup).",
-      "latency_ms": 299.5624542236328,
+      "latency_ms": 289.4396781921387,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"HIGH\",\"contains_added_sugar\":true,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[\"high fructose corn syrup\"],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"1 added sugar source detected (high fructose corn syrup).\"}"
@@ -112,7 +112,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (high fructose corn syrup).",
-      "latency_ms": 299.8020648956299,
+      "latency_ms": 289.6876335144043,
       "valid_json": true
     }
   },
@@ -136,7 +136,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (sugar).",
-      "latency_ms": 0.18477439880371094,
+      "latency_ms": 0.18143653869628906,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -150,7 +150,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (cane sugar).",
-      "latency_ms": 257.2054862976074,
+      "latency_ms": 269.61660385131836,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":true,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[\"cane sugar\"],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"1 added sugar source detected (cane sugar).\"}"
@@ -167,7 +167,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (sugar).",
-      "latency_ms": 257.39026069641113,
+      "latency_ms": 269.79804039001465,
       "valid_json": true
     }
   },
@@ -193,7 +193,7 @@
         "stevia"
       ],
       "explanation": "Contains non-nutritive sweetener (stevia).",
-      "latency_ms": 0.202178955078125,
+      "latency_ms": 0.18453598022460938,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -205,7 +205,7 @@
       "detectedSugars": [],
       "artificialSweeteners": [],
       "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e. lactose or whole-fruit sugar) may be present.",
-      "latency_ms": 614.734411239624,
+      "latency_ms": 312.5419616699219,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No added sugar or artificial sweeteners detected. Naturally occurring sugars (e. lactose or whole-fruit sugar) may be present.\"}"
@@ -221,7 +221,7 @@
         "stevia"
       ],
       "explanation": "Contains non-nutritive sweetener (stevia).",
-      "latency_ms": 614.9365901947021,
+      "latency_ms": 312.7264976501465,
       "valid_json": true
     }
   },
@@ -245,7 +245,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (high fructose corn syrup).",
-      "latency_ms": 0.7679462432861328,
+      "latency_ms": 0.6740093231201172,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -257,7 +257,7 @@
       "detectedSugars": [],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (sugar).",
-      "latency_ms": 568.3009624481201,
+      "latency_ms": 266.0667896270752,
       "hallucinated_terms_dropped": [
         "sugar"
       ],
@@ -275,7 +275,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (high fructose corn syrup).",
-      "latency_ms": 569.0689086914062,
+      "latency_ms": 266.7407989501953,
       "valid_json": true
     }
   },
@@ -300,7 +300,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "2 added sugar sources detected (high fructose corn syrup, sugar).",
-      "latency_ms": 0.2720355987548828,
+      "latency_ms": 0.2715587615966797,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -314,7 +314,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (high fructose corn syrup).",
-      "latency_ms": 500.6725788116455,
+      "latency_ms": 274.4433879852295,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"HIGH\",\"contains_added_sugar\":true,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[\"high fructose corn syrup\"],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"1 added sugar source detected (high fructose corn syrup).\"}"
@@ -331,7 +331,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "2 added sugar sources detected (high fructose corn syrup, sugar).",
-      "latency_ms": 500.9446144104004,
+      "latency_ms": 274.7149467468262,
       "valid_json": true
     }
   },
@@ -356,7 +356,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "2 added sugar sources detected (high fructose corn syrup, fruit juice concentrate); includes a sugar source not obviously named \"sugar\".",
-      "latency_ms": 0.32591819763183594,
+      "latency_ms": 0.4050731658935547,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -370,7 +370,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (high fructose corn syrup).",
-      "latency_ms": 593.8215255737305,
+      "latency_ms": 282.5331687927246,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"HIGH\",\"contains_added_sugar\":true,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[\"high fructose corn syrup\"],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"1 added sugar source detected (high fructose corn syrup).\"}"
@@ -387,7 +387,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "2 added sugar sources detected (high fructose corn syrup, fruit juice concentrate); includes a sugar source not obviously named \"sugar\".",
-      "latency_ms": 594.1474437713623,
+      "latency_ms": 282.93824195861816,
       "valid_json": true
     }
   },
@@ -413,7 +413,7 @@
         "sucralose"
       ],
       "explanation": "Contains non-nutritive sweetener (sucralose).",
-      "latency_ms": 0.2219676971435547,
+      "latency_ms": 0.17690658569335938,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -425,7 +425,7 @@
       "detectedSugars": [],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (sugar).",
-      "latency_ms": 296.83947563171387,
+      "latency_ms": 281.01658821105957,
       "hallucinated_terms_dropped": [
         "sugar"
       ],
@@ -443,7 +443,7 @@
         "sucralose"
       ],
       "explanation": "Contains non-nutritive sweetener (sucralose).",
-      "latency_ms": 297.0614433288574,
+      "latency_ms": 281.19349479675293,
       "valid_json": true
     }
   },
@@ -472,7 +472,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "3 added sugar sources detected (sugar, grape juice concentrate, pineapple juice concentrate); includes a sugar source not obviously named \"sugar\".",
-      "latency_ms": 0.2980232238769531,
+      "latency_ms": 0.24771690368652344,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -484,7 +484,7 @@
       "detectedSugars": [],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (apple juice concentrate); includes a sugar source not obviously named \"sugar\".",
-      "latency_ms": 307.0549964904785,
+      "latency_ms": 304.229736328125,
       "hallucinated_terms_dropped": [
         "apple juice concentrate"
       ],
@@ -504,7 +504,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "3 added sugar sources detected (sugar, grape juice concentrate, pineapple juice concentrate); includes a sugar source not obviously named \"sugar\".",
-      "latency_ms": 307.35301971435547,
+      "latency_ms": 304.4774532318115,
       "valid_json": true
     }
   },
@@ -535,7 +535,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "3 added sugar sources detected (grape juice concentrate, apple juice concentrate, fruit juice concentrate); includes a sugar source not obviously named \"sugar\".",
-      "latency_ms": 0.3104209899902344,
+      "latency_ms": 0.3063678741455078,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -549,7 +549,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (apple juice concentrate); includes a sugar source not obviously named \"sugar\".",
-      "latency_ms": 304.90922927856445,
+      "latency_ms": 307.85417556762695,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"HIGH\",\"contains_added_sugar\":true,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[\"apple juice concentrate\"],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"1 added sugar source detected (apple juice concentrate); includes a sugar source not obviously named \\\"sugar\\\".\"}"
@@ -567,7 +567,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "3 added sugar sources detected (grape juice concentrate, apple juice concentrate, fruit juice concentrate); includes a sugar source not obviously named \"sugar\".",
-      "latency_ms": 305.2196502685547,
+      "latency_ms": 308.16054344177246,
       "valid_json": true
     }
   },
@@ -589,7 +589,7 @@
       "detectedSugars": [],
       "artificialSweeteners": [],
       "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e.g. lactose or whole-fruit sugar) may be present.",
-      "latency_ms": 0.11301040649414062,
+      "latency_ms": 0.091552734375,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -601,7 +601,7 @@
       "detectedSugars": [],
       "artificialSweeteners": [],
       "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e. lactose or whole-fruit sugar) may be present.",
-      "latency_ms": 325.81472396850586,
+      "latency_ms": 300.1890182495117,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"SAFE\",\"contains_added_sugar\":false,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":true,\"detected_sugars\":[],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"No added sugar or artificial sweeteners detected. Naturally occurring sugars (e. lactose or whole-fruit sugar) may be present.\"}"
@@ -615,7 +615,7 @@
       "detectedSugars": [],
       "artificialSweeteners": [],
       "explanation": "No added sugar or artificial sweeteners detected. Naturally occurring sugars (e.g. lactose or whole-fruit sugar) may be present.",
-      "latency_ms": 325.927734375,
+      "latency_ms": 300.2805709838867,
       "valid_json": true
     }
   },
@@ -644,7 +644,7 @@
         "sucralose"
       ],
       "explanation": "2 added sugar sources detected (high fructose corn syrup, fruit juice concentrate); includes a sugar source not obviously named \"sugar\"; contains non-nutritive sweetener (sucralose).",
-      "latency_ms": 0.2846717834472656,
+      "latency_ms": 0.31876564025878906,
       "valid_json": true
     },
     "finetuned_model_prediction": {
@@ -658,7 +658,7 @@
       ],
       "artificialSweeteners": [],
       "explanation": "1 added sugar source detected (high fructose corn syrup).",
-      "latency_ms": 316.70475006103516,
+      "latency_ms": 270.1146602630615,
       "hallucinated_terms_dropped": [],
       "valid_json": true,
       "raw_output": "{\"risk_level\":\"HIGH\",\"contains_added_sugar\":true,\"contains_hidden_sugar\":false,\"contains_artificial_sweetener\":false,\"contains_natural_sugar\":false,\"detected_sugars\":[\"high fructose corn syrup\"],\"artificial_sweeteners\":[],\"confidence\":0.7,\"explanation\":\"1 added sugar source detected (high fructose corn syrup).\"}"
@@ -677,7 +677,7 @@
         "sucralose"
       ],
       "explanation": "2 added sugar sources detected (high fructose corn syrup, fruit juice concentrate); includes a sugar source not obviously named \"sugar\"; contains non-nutritive sweetener (sucralose).",
-      "latency_ms": 316.9894218444824,
+      "latency_ms": 270.4334259033203,
       "valid_json": true
     }
   }

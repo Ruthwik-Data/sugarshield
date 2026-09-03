@@ -5,37 +5,37 @@
     "gold": "/home/user/sugarshield/data/scripts/../gold/gold.jsonl"
   },
   "split_sizes": {
-    "train": 6189,
-    "validation": 688,
+    "train": 6188,
+    "validation": 689,
     "gold": 59
   },
   "overall": {
     "total": 6936,
     "category_counts": {
-      "kids_food": 148,
-      "sauce": 562,
-      "healthy_marketed": 322,
-      "natural_sugar": 514,
-      "other": 474,
-      "juice": 603,
-      "cereal": 504,
-      "dessert": 674,
-      "soda": 275,
-      "bread": 485,
-      "artificially_sweetened": 192,
       "snack": 603,
-      "breakfast": 453,
+      "healthy_marketed": 322,
+      "juice": 603,
+      "sauce": 562,
+      "natural_sugar": 514,
+      "cereal": 504,
       "protein_bar": 175,
+      "bread": 485,
+      "yogurt": 478,
+      "breakfast": 453,
+      "soda": 275,
+      "artificially_sweetened": 192,
+      "dessert": 674,
+      "other": 474,
+      "kids_food": 148,
       "protein_product": 409,
-      "sugar_free": 65,
-      "yogurt": 478
+      "sugar_free": 65
     },
     "risk_level_counts": {
-      "MODERATE": 1213,
+      "MODERATE": 1078,
       "HIGH": 2222,
-      "SAFE": 1451,
       "VERY_HIGH": 1883,
-      "LOW": 167
+      "SAFE": 1692,
+      "LOW": 61
     },
     "source_counts": {
       "grocerydb": 6916,
@@ -58,89 +58,89 @@
   },
   "by_split": {
     "train": {
-      "total": 6189,
+      "total": 6188,
       "category_counts": {
-        "kids_food": 131,
-        "sauce": 499,
-        "healthy_marketed": 287,
-        "natural_sugar": 459,
-        "other": 421,
-        "juice": 537,
-        "cereal": 450,
-        "dessert": 605,
-        "soda": 244,
-        "bread": 434,
-        "artificially_sweetened": 171,
         "snack": 539,
-        "breakfast": 404,
+        "healthy_marketed": 287,
+        "juice": 537,
+        "sauce": 499,
+        "natural_sugar": 459,
+        "cereal": 451,
         "protein_bar": 155,
+        "bread": 434,
+        "yogurt": 429,
+        "breakfast": 404,
+        "soda": 244,
+        "artificially_sweetened": 170,
+        "dessert": 604,
+        "other": 420,
+        "kids_food": 131,
         "protein_product": 366,
-        "sugar_free": 58,
-        "yogurt": 429
+        "sugar_free": 59
       },
       "risk_level_counts": {
-        "MODERATE": 1080,
+        "MODERATE": 957,
         "HIGH": 1979,
-        "SAFE": 1300,
         "VERY_HIGH": 1685,
-        "LOW": 145
+        "SAFE": 1516,
+        "LOW": 51
       },
       "source_counts": {
-        "grocerydb": 6189
+        "grocerydb": 6188
       },
       "verified_counts": {
-        "False": 6189
+        "False": 6188
       },
-      "pct_contains_hidden_sugar": 27.02,
+      "pct_contains_hidden_sugar": 26.79,
       "pct_contains_artificial_sweetener": 12.3,
-      "pct_contains_added_sugar": 73.99,
-      "pct_contains_natural_sugar": 41.67,
+      "pct_contains_added_sugar": 73.9,
+      "pct_contains_natural_sugar": 41.86,
       "real_vs_synthetic": {
-        "real": 6189,
+        "real": 6188,
         "synthetic_manual": 0,
         "pct_real": 100.0
       }
     },
     "validation": {
-      "total": 688,
+      "total": 689,
       "category_counts": {
         "sauce": 56,
-        "protein_product": 41,
-        "dessert": 66,
-        "cereal": 51,
-        "natural_sugar": 51,
-        "yogurt": 47,
-        "artificially_sweetened": 19,
         "bread": 48,
-        "juice": 60,
-        "other": 47,
-        "soda": 27,
-        "kids_food": 15,
-        "snack": 60,
+        "other": 48,
+        "protein_product": 41,
+        "dessert": 67,
         "breakfast": 45,
-        "healthy_marketed": 32,
+        "soda": 27,
+        "yogurt": 47,
         "protein_bar": 17,
-        "sugar_free": 6
+        "natural_sugar": 51,
+        "cereal": 50,
+        "snack": 60,
+        "artificially_sweetened": 20,
+        "juice": 60,
+        "healthy_marketed": 32,
+        "kids_food": 15,
+        "sugar_free": 5
       },
       "risk_level_counts": {
+        "MODERATE": 108,
         "VERY_HIGH": 186,
         "HIGH": 221,
-        "SAFE": 144,
-        "LOW": 16,
-        "MODERATE": 121
+        "SAFE": 170,
+        "LOW": 4
       },
       "source_counts": {
-        "grocerydb": 688
+        "grocerydb": 689
       },
       "verified_counts": {
-        "False": 688
+        "False": 689
       },
-      "pct_contains_hidden_sugar": 26.45,
-      "pct_contains_artificial_sweetener": 11.63,
-      "pct_contains_added_sugar": 73.55,
-      "pct_contains_natural_sugar": 42.01,
+      "pct_contains_hidden_sugar": 28.45,
+      "pct_contains_artificial_sweetener": 11.61,
+      "pct_contains_added_sugar": 74.17,
+      "pct_contains_natural_sugar": 40.49,
       "real_vs_synthetic": {
-        "real": 688,
+        "real": 689,
         "synthetic_manual": 0,
         "pct_real": 100.0
       }
@@ -168,10 +168,10 @@
       },
       "risk_level_counts": {
         "HIGH": 22,
-        "SAFE": 7,
+        "SAFE": 6,
         "LOW": 6,
         "VERY_HIGH": 12,
-        "MODERATE": 12
+        "MODERATE": 13
       },
       "source_counts": {
         "sugarshield_v1_eval": 15,
@@ -183,8 +183,8 @@
       },
       "pct_contains_hidden_sugar": 33.9,
       "pct_contains_artificial_sweetener": 18.64,
-      "pct_contains_added_sugar": 77.97,
-      "pct_contains_natural_sugar": 30.51,
+      "pct_contains_added_sugar": 79.66,
+      "pct_contains_natural_sugar": 28.81,
       "real_vs_synthetic": {
         "real": 54,
         "synthetic_manual": 5,

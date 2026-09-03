@@ -112,3 +112,39 @@ change expected there) but this time writes a complete
 `sample_predictions.json` covering every record instead of the first 12.
 Push that file back and it'll be folded into a Qwen-specific bucket
 breakdown alongside this one.
+
+## Addendum: acting on the #1 finding, and a second bug it surfaced
+
+Given the artificial-sweetener-only miscalibration was the single largest,
+most consistent failure bucket above, `data/scripts/label_records.py` now
+applies `_apply_sweetener_only_calibration()`: when a record has zero real
+sugar signal (no added, hidden, or natural sugar) but at least one
+artificial/plant sweetener, its **training-target** `risk_level` is
+overridden to `SAFE`, matching the independent benchmark's empirically
+validated convention. This touches only the silver labels used to build
+`data/train/train.jsonl` / `data/validation/validation.jsonl` — it does
+**not** touch `lib/riskEngine.ts` or `risk_engine.py`'s
+`analyze_ingredients_text()`, which keep scoring live production traffic
+exactly as before. Training on the rule engine's own miscalibration would
+just teach a model to repeat the same false positives; this lets the model
+actually improve on the known gap instead of imitating it. Result: bulk
+`risk_level` breakdown shifts from 165 LOW / 1,209 MODERATE / 1,448 SAFE to
+55 LOW / 1,074 MODERATE / 1,693 SAFE (out of 6,916 records) — exactly the
+direction the independent-benchmark evidence calls for.
+
+This surfaced a second, real bug: `data/scripts/build_gold_set.py`'s
+curated/isolated/general-coverage picks all copied their fields straight
+from the labeled pool (`data/processed/all_records.jsonl`), so once that
+pool started carrying the calibration override, 4 gold records (all
+diet-soda/sweetener-only cases) silently inherited the calibrated `SAFE`
+label while `ml/evaluate.py`'s `rule_baseline` kept scoring them fresh
+(uncalibrated) — producing 4 false positives on a benchmark that is
+supposed to be circular by construction. Fixed by adding an explicit
+recompute pass in `build_gold_set.py`: every GroceryDB-sourced gold record
+gets its `risk_level` (and everything derived from it) recalculated via a
+fresh, uncalibrated `analyze_ingredients_text()` call right before
+writing, restoring the gold set's own documented invariant ("every record
+is run through the SAME ported risk_engine used for the bulk data").
+Regression-tested in
+[`data/scripts/test_label_calibration.py`](../data/scripts/test_label_calibration.py)
+— `python3 data/scripts/test_label_calibration.py`.

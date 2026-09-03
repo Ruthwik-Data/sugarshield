@@ -39,8 +39,42 @@ VALID_CATEGORIES = {
 }
 
 
+def _apply_sweetener_only_calibration(result: dict) -> dict:
+    """Fine-tune V2 Loop 1 finding: STRICT mode's rule engine scores a
+    product containing ONLY artificial/plant sweeteners (aspartame,
+    sucralose, stevia, ...) as LOW/MODERATE/VERY_HIGH purely from sweetener
+    weighting, even when it contains zero real sugar of any kind (no added,
+    hidden, or natural sugar). Measured against the independently-labeled
+    132-record benchmark, this was the single largest, most consistent
+    failure pattern: 7 of 9 rule-engine false positives were exactly this
+    case (diet sodas, sugar-free syrups, stevia drops) -- the independent
+    labelers score these SAFE, since the dataset's question is specifically
+    "is there real sugar here", not "is this sweetener healthy".
+
+    This override applies ONLY here, to the silver labels used as fine-
+    tuning targets -- it does not touch lib/riskEngine.ts or
+    risk_engine.py's analyze_ingredients_text(), which stay exactly as
+    they score live production traffic today. Training the model on the
+    rule engine's own miscalibration on this pattern would just teach it
+    to repeat the same false positives; training it on the empirically
+    better-calibrated label lets the model actually improve on this known
+    gap instead of imitating it.
+    """
+    has_any_real_sugar = result["containsAddedSugar"] or result["containsHiddenSugar"] or result["containsNaturalSugar"]
+    if not has_any_real_sugar and result["containsArtificialSweetener"] and result["riskLevel"] != "SAFE":
+        result = dict(result)
+        result["riskLevel"] = "SAFE"
+        sweeteners = ", ".join(result["artificialSweeteners"][:3]) or "a non-nutritive sweetener"
+        result["explanation"] = (
+            f"No added, hidden, or natural sugar detected — sweetened solely with {sweeteners}. "
+            "Flagged SAFE on the sugar-specific question this product measures."
+        )
+    return result
+
+
 def label_one(cand: dict) -> dict:
     result = analyze_ingredients_text(cand["ingredients_raw"], mode="STRICT")
+    result = _apply_sweetener_only_calibration(result)
 
     final_category = refine_category_post_label(
         cand["provisional_category"],
