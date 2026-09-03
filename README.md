@@ -143,13 +143,13 @@ This build environment's network egress blocks `huggingface.co` outright (see ab
 - A real Apple MPS bug was hit and fixed: `ml/model_io.py`'s `load_model()` never called `model.to(device)`, so generation silently ran on CPU (25+ minutes, no results) despite training correctly on MPS. Fixed by resolving the device explicitly, moving both model and inputs onto it, using `torch.inference_mode()`, and capping `max_new_tokens` at 128 — confirmed by the person running it: `device=mps`, ~4–8s/sample instead of an unfinished 25+ minute hang.
 - `ml/merge_lora.py` (merge adapter → full weights), a GGUF conversion path via `llama.cpp`, and an Ollama `Modelfile` for `ollama create sugarshield-qwen2.5-1.5b` are implemented and documented end-to-end in [`ml/LOCAL_QWEN_FINETUNE.md`](ml/LOCAL_QWEN_FINETUNE.md) — structurally validated in this repo against a real Qwen2 architecture (random weights, no network), then run for real on the Mac holding the actual weights.
 
-**Honestly, what's not done yet:** the Qwen checkpoint's own `ml/results/benchmark.json` (run via `ml/evaluate.py --checkpoint <qwen-checkpoint-dir> --gold ../data/independent_gold/independent_gold.jsonl --results_dir ./results_qwen_independent`) hasn't been generated *in this repository* — that requires the machine holding the fine-tuned Qwen weights, which this build environment doesn't have. Do not read the from-scratch model's numbers below as Qwen's numbers; they're a different checkpoint. Whoever runs that command next should commit `ml/results_qwen_independent/benchmark.json`, and `/eval` and this README should be updated from that real file, exactly as the independent-benchmark section below was.
+**Update — the Qwen checkpoint has now been benchmarked against the independent gold set.** `ml/results_qwen_independent/benchmark.json` was produced by running `ml/evaluate.py --checkpoint ./checkpoints/sugarshield-qwen2.5-1.5b --gold ../data/independent_gold/independent_gold.jsonl --results_dir ./results_qwen_independent --device mps` on the Mac holding the real fine-tuned weights (exact provenance, including the raw terminal output, in [`ml/results_qwen_independent/NOTES.md`](ml/results_qwen_independent/NOTES.md)). Do not confuse these numbers with the from-scratch model's — they're a different checkpoint, kept in a separate results directory precisely so the two are never conflated. See the [Independent benchmark](#independent-benchmark-132-case-non-circular-gold-set--the-honest-number) section below for the actual results and their honest interpretation.
 
 ---
 
 ## Benchmark: rule engine vs. fine-tuned model vs. hybrid
 
-`ml/evaluate.py` scores rule engine / fine-tuned model / hybrid against **two separate gold sets**, and the two are never conflated — on `/eval` or here. Both sets score the same **from-scratch model checkpoint** (`ml/checkpoints/sugarshield-v1`); the Qwen2.5-1.5B track has its own, honestly-labeled "not yet run in this repo" status above.
+`ml/evaluate.py` scores rule engine / fine-tuned model / hybrid, and the results below span **two gold sets and two checkpoints**, never conflated with each other — on `/eval` or here: the original 59-case set and the independent 132-case set both score the **from-scratch model checkpoint** (`ml/checkpoints/sugarshield-v1`), while a third table further down scores the same independent set against the real **Qwen2.5-1.5B LoRA fine-tune** (`ml/checkpoints/sugarshield-qwen2.5-1.5b`) — the project's actual research-track model.
 
 ### Original benchmark (59-case gold set) — read with its caveat, not as a headline
 
@@ -175,7 +175,7 @@ Every number from `ml/results/benchmark.json` — the live `/eval` page reads th
 
 Same three systems, run with `ml/evaluate.py --gold ../data/independent_gold/independent_gold.jsonl --results_dir ./results_independent` against the **independently-labeled** set described [above](#the-independent-benchmark-dataindependent_gold). Every number from `ml/results_independent/benchmark.json`.
 
-| Metric | Rule Engine (production) | Fine-tuned Model (standalone) | Hybrid (model + rules) |
+| Metric | Rule Engine (production) | From-scratch Model (standalone) | Hybrid (model + rules) |
 |---|---|---|---|
 | Accuracy (flag vs. no-flag) | **90.9%** | 86.3% | 91.7% |
 | Precision | 92.6% | 93.6% | 91.9% |
@@ -186,18 +186,35 @@ Same three systems, run with `ml/evaluate.py --gold ../data/independent_gold/ind
 | Hidden-sugar recall | 50% | 13.6% | 50% |
 | Structured JSON validity | 100% | 93.9% | 100% |
 
-**This is the real evidence the production decision below is based on** — not the 100% above. The rule engine drops from a self-graded 100% to an honest 90.9% once it's measured against labels it didn't produce itself, which is exactly what circularity concerns predict, and exactly why this second benchmark was built rather than trusting the first. It's still the best-performing standalone system on this set, and hybrid reconciliation still wins outright (91.7% accuracy, 98.1% recall, lowest false-negative count) by combining both — the deterministic engine's real-world blind spots (only 50% hidden-sugar recall, even here) are a large part of why hybrid reconciliation exists as an architecture, not a fallback.
+The rule engine drops from a self-graded 100% to an honest 90.9% once it's measured against labels it didn't produce itself, which is exactly what circularity concerns predict, and exactly why this second benchmark was built rather than trusting the first. Against the small from-scratch model, hybrid reconciliation wins outright (91.7% accuracy, 98.1% recall, lowest false-negative count) — but that model is a stand-in built because this build environment can't reach Hugging Face Hub, not the project's real research-track model. The table that actually matters for the production decision is next.
 
-**Hybrid** (rule detections are authoritative; the model can only add signal the rules missed, filtered through the [hallucination guard](#hallucination-guard-mlhallucination_guardpy) so an unsupported model claim can never reach a result; `risk_level` takes the more severe of the two) beats both standalone systems on every case where they disagree in the safety-relevant direction.
+### Independent benchmark — real Qwen2.5-1.5B fine-tune
+
+Same 132-record independent gold set, same three systems, but with the actual research-track model: a real LoRA fine-tune of Qwen2.5-1.5B-Instruct on real pretrained weights, run on the Mac holding those weights (not in this build environment — see [`ml/results_qwen_independent/NOTES.md`](ml/results_qwen_independent/NOTES.md) for exact provenance, including the raw command and terminal output). Every number from `ml/results_qwen_independent/benchmark.json`, committed unedited.
+
+| Metric | Rule Engine (production) | Qwen2.5-1.5B (real LoRA fine-tune) | Hybrid (model + rules) |
+|---|---|---|---|
+| Accuracy (flag vs. no-flag) | **90.9%** | 83.0% | 89.4% |
+| Precision | 92.6% | **96.5%** | 90.9% |
+| Recall | 96.2% | 81.2% | 96.2% |
+| F1 | 94.3% | 88.2% | 93.5% |
+| False negatives | 4 | 19 | 4 |
+| False positives | 8 | **3** | 10 |
+| Hidden-sugar recall | 50% | 15.2% | **56.3%** |
+| Trigger match accuracy | 58.3% | 41.3% | **72.9%** |
+| Structured JSON validity | 100% | 97.7% | 100% |
+| Avg latency | 0.9 ms | 4,552 ms | 4,553 ms |
+
+**Read this honestly — it is not a clean win for hybrid.** With the real Qwen model, **hybrid's raw accuracy (89.4%) is actually slightly lower than the rule engine alone (90.9%)**: both catch the exact same 4 false negatives, but hybrid adds 2 more false positives from the model's own guesses (8 → 10), which is why its precision drops (92.6% → 90.9%) while recall stays flat (96.2% → 96.2%, since the model added zero flag-level catches the rules missed). Where Qwen genuinely earns its keep is at the *term* level, not the flag level: hidden-sugar recall improves from 50% to 56.3% and trigger-match accuracy jumps from 58.3% to 72.9% — the model is correctly naming specific hidden-sugar/sweetener terms the rule engine's fixed lexicon doesn't catch, even though that doesn't change how many products get flagged overall. Standalone, Qwen is disqualifying on its own evidence for this product's safety bar: 19 false negatives (worse than the rule engine's 4) and only 15.2% hidden-sugar recall, consistent with the "don't ship the model alone while it still has this many false negatives" principle this project set out with. Also real, not a nitpick: ~4.5 second average latency per call versus the rule engine's sub-millisecond — a cost that would matter for any hosted deployment.
 
 ### Production model/system selected: the deterministic rule engine
 
-`app/api/analyze/route.ts` runs `lib/riskEngine.ts` — not the fine-tuned model, and not the hybrid reconciliation. Two independent reasons, not one:
+`app/api/analyze/route.ts` runs `lib/riskEngine.ts` — not either fine-tuned model, and not the hybrid reconciliation. Two independent reasons, not one:
 
-1. **Both benchmarks above.** The standalone from-scratch model doesn't outperform the rule engine on either gold set, and the Qwen track hasn't been benchmarked in this repo yet — there is no evidence today that any model beats the deterministic engine.
-2. **Hosting.** This app deploys to Vercel serverless functions, which have no persistent process to hold a loaded PyTorch model between requests — cold-starting a checkpoint on every invocation is impractical at this stage. There's no model-endpoint hook wired into `app/api/analyze/route.ts` today; if a hosted inference service is stood up later, it would need the same reconciliation logic `ml/evaluate.py` already implements for the hybrid benchmark (rule-engine detections are authoritative, the model can only add signal, hallucination-filtered) ported into that route.
+1. **Both independent-benchmark tables above.** Standalone, neither model outperforms the rule engine — the from-scratch model loses on accuracy, and the real Qwen fine-tune loses badly on false negatives (19 vs. 4) despite higher precision. Hybrid with real Qwen doesn't clearly beat the rule engine either: it trades 2 extra false positives for better term-level recall, not a strict improvement. There is no evidence today that any model or hybrid combination should replace the deterministic engine in production.
+2. **Hosting.** This app deploys to Vercel serverless functions, which have no persistent process to hold a loaded PyTorch model between requests — cold-starting a checkpoint on every invocation is impractical at this stage, and the real Qwen model's ~4.5s/call latency (measured above) would make that worse, not better. There's no model-endpoint hook wired into `app/api/analyze/route.ts` today; if a hosted inference service is stood up later, it would need the same reconciliation logic `ml/evaluate.py` already implements for the hybrid benchmark (rule-engine detections are authoritative, the model can only add signal, hallucination-filtered) ported into that route.
 
-If a stronger model (the Qwen2.5-1.5B checkpoint once benchmarked against the independent set, or simply more real training data) beats the rule engine on the independent gold set in the future, `evaluate.py` will show it — and the production choice above should change with it. That's the entire point of keeping both benchmarks real.
+If a future model or a retrained Qwen checkpoint beats the rule engine outright on the independent gold set — not just on isolated term-level metrics — `evaluate.py` will show it, and the production choice above should change with it. That's the entire point of keeping every benchmark here real.
 
 ## Hallucination guard (`ml/hallucination_guard.py`)
 
@@ -318,9 +335,9 @@ Missing hidden sugar is riskier than over-warning. That principle drove v1's des
 - ✅ Real from-scratch model training executed, checkpoint committed and benchmarked
 - ✅ A real Qwen2.5-1.5B-Instruct LoRA fine-tune executed on real pretrained weights (Mac-side, MPS-accelerated, verified generating); Ollama export path implemented and documented
 - ✅ A second, independently-labeled 132-record benchmark built specifically to check the first wasn't circular — and it wasn't wrong to check: rule-engine accuracy drops from a self-graded 100% to an honest 90.9%
+- ✅ The real Qwen2.5-1.5B checkpoint benchmarked against that same independent set: standalone it's disqualifying (19 false negatives, 15.2% hidden-sugar recall), and hybrid with it doesn't clearly beat the rule engine on raw accuracy either — reported honestly rather than spun as a win, and the production choice hasn't changed
 - ✅ Hallucination guard rejects model-claimed terms unsupported by the actual ingredient text
 - ✅ Canonical `/api/analyze` shared by the web app and the Chrome extension
 - ✅ Chrome extension repositioned as the primary product surface: highlighted ingredient text, clean "couldn't auto-detect" messaging, Amazon/Walmart/Target adapters
-- ⏳ The Qwen2.5-1.5B checkpoint's own benchmark.json against the independent gold set — not yet run in this repo (needs the Mac holding those weights); see "The Qwen2.5-1.5B track" above for the exact command
 - ⏳ A hosted inference endpoint for the fine-tuned/hybrid model — not built; see "Hosting" above for what it would take
 - ⏳ Multi-day historical trends

@@ -1,0 +1,60 @@
+{
+  "generated_at_utc": "2026-09-03T21:27:38Z",
+  "gold_set_size": 132,
+  "systems": {
+    "rule_baseline": {
+      "n_gold": 132,
+      "n_scored_valid_json": 132,
+      "n_invalid_json": 0,
+      "json_validity_rate": 1.0,
+      "accuracy": 0.9091,
+      "precision": 0.9259,
+      "recall": 0.9615,
+      "f1": 0.9434,
+      "true_positives": 100,
+      "false_positives": 8,
+      "true_negatives": 20,
+      "false_negatives": 4,
+      "risk_level_exact_match_accuracy": 0.3485,
+      "hidden_sugar_recall": 0.5,
+      "trigger_match_accuracy": 0.5833,
+      "avg_latency_ms": 0.931
+    },
+    "finetuned_model": {
+      "n_gold": 132,
+      "n_scored_valid_json": 129,
+      "n_invalid_json": 3,
+      "json_validity_rate": 0.9773,
+      "accuracy": 0.8295,
+      "precision": 0.9647,
+      "recall": 0.8119,
+      "f1": 0.8817,
+      "true_positives": 82,
+      "false_positives": 3,
+      "true_negatives": 25,
+      "false_negatives": 19,
+      "risk_level_exact_match_accuracy": 0.4264,
+      "hidden_sugar_recall": 0.1522,
+      "trigger_match_accuracy": 0.413,
+      "avg_latency_ms": 4551.727
+    },
+    "hybrid": {
+      "n_gold": 132,
+      "n_scored_valid_json": 132,
+      "n_invalid_json": 0,
+      "json_validity_rate": 1.0,
+      "accuracy": 0.8939,
+      "precision": 0.9091,
+      "recall": 0.9615,
+      "f1": 0.9346,
+      "true_positives": 100,
+      "false_positives": 10,
+      "true_negatives": 18,
+      "false_negatives": 4,
+      "risk_level_exact_match_accuracy": 0.3182,
+      "hidden_sugar_recall": 0.5625,
+      "trigger_match_accuracy": 0.7292,
+      "avg_latency_ms": 4552.658
+    }
+  }
+}

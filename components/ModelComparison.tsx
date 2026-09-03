@@ -46,6 +46,10 @@ interface BenchmarkResponse {
     benchmark: BenchmarkFile | null;
     datasetInfo: { size: number; categoryCounts: Record<string, number> } | null;
   };
+  qwenIndependentBenchmark: {
+    available: boolean;
+    benchmark: BenchmarkFile | null;
+  };
 }
 
 const SYSTEM_LABELS: Record<string, string> = {
@@ -73,8 +77,9 @@ const METRIC_ROWS: { label: string; get: (m: SystemMetrics) => string }[] = [
   { label: 'Avg latency', get: (m) => (m.avg_latency_ms !== null ? `${m.avg_latency_ms.toFixed(1)} ms` : '—') },
 ];
 
-function MetricsTable({ systems }: { systems: SystemsBlock }) {
+function MetricsTable({ systems, finetunedLabel }: { systems: SystemsBlock; finetunedLabel?: string }) {
   const systemKeys: (keyof SystemsBlock)[] = ['rule_baseline', 'finetuned_model', 'hybrid'];
+  const labels: Record<string, string> = { ...SYSTEM_LABELS, ...(finetunedLabel ? { finetuned_model: finetunedLabel } : {}) };
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left border-collapse min-w-[640px] text-sm">
@@ -82,7 +87,7 @@ function MetricsTable({ systems }: { systems: SystemsBlock }) {
           <tr className="bg-zinc-50 border-b border-zinc-100 text-[10px] uppercase tracking-wider text-zinc-400 font-semibold">
             <th className="p-3">Metric</th>
             {systemKeys.map((k) => (
-              <th key={k} className="p-3">{SYSTEM_LABELS[k]}</th>
+              <th key={k} className="p-3">{labels[k]}</th>
             ))}
           </tr>
         </thead>
@@ -134,6 +139,7 @@ export default function ModelComparison() {
 
   const { systems, gold_set_size } = data.benchmark;
   const independent = data.independentBenchmark;
+  const qwenIndependent = data.qwenIndependentBenchmark;
 
   return (
     <div className="space-y-4">
@@ -187,7 +193,7 @@ export default function ModelComparison() {
           </p>
         </div>
 
-        <MetricsTable systems={systems} />
+        <MetricsTable systems={systems} finetunedLabel="From-scratch model (standalone)" />
 
         <p className="text-xs text-zinc-400 leading-relaxed pt-2 border-t border-zinc-100">
           Production (<code>/api/analyze</code>) runs the rule engine — see the README for why, and for the reasoning behind selecting it over the
@@ -211,7 +217,7 @@ export default function ModelComparison() {
         </div>
 
         {independent?.available && independent.benchmark ? (
-          <MetricsTable systems={independent.benchmark.systems} />
+          <MetricsTable systems={independent.benchmark.systems} finetunedLabel="From-scratch model (standalone)" />
         ) : (
           <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4">
             <p className="text-sm text-zinc-500 leading-relaxed">
@@ -223,6 +229,43 @@ export default function ModelComparison() {
                 : <>The independent benchmark hasn&apos;t been built in this checkout yet — see{' '}
                     <code className="bg-white px-1 py-0.5 rounded border border-zinc-200">data/independent_gold/</code> once it exists.
                     This section will only ever show numbers actually measured against that file, never invented ones.</>}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* INDEPENDENT BENCHMARK — REAL QWEN2.5-1.5B FINE-TUNE */}
+      <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6 space-y-4">
+        <div>
+          <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">Independent benchmark — real Qwen2.5-1.5B</p>
+          <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-1">Qwen2.5-1.5B LoRA Fine-Tune vs. Rules</h2>
+          <p className="text-sm text-zinc-500 leading-relaxed">
+            Same independent, non-circular gold set as above, but with the actual research-track model: a real LoRA
+            fine-tune of Qwen2.5-1.5B-Instruct, run on the machine holding those weights (this benchmark can&apos;t be
+            produced inside the environment that builds this app — see{' '}
+            <code className="bg-white px-1 py-0.5 rounded border border-zinc-200">ml/results_qwen_independent/NOTES.md</code> for exact provenance).
+          </p>
+        </div>
+
+        {qwenIndependent?.available && qwenIndependent.benchmark ? (
+          <>
+            <MetricsTable systems={qwenIndependent.benchmark.systems} finetunedLabel="Qwen2.5-1.5B (real LoRA fine-tune)" />
+            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3">
+              <p className="text-xs text-indigo-900 leading-relaxed">
+                <strong>Read honestly:</strong> hybrid does not clearly beat the rule engine here — accuracy is actually
+                slightly lower (rule alone catches the same 4 false negatives hybrid does, while hybrid adds 2 more
+                false positives from the model&apos;s own guesses). Where Qwen genuinely helps is term-level: hidden-sugar
+                recall and trigger-match accuracy both improve noticeably in the hybrid row, at a real precision cost.
+                That&apos;s not a clean win, and it&apos;s reported as such — production stays the rule engine.
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4">
+            <p className="text-sm text-zinc-500 leading-relaxed">
+              Not yet benchmarked in this checkout — the fine-tuned Qwen2.5-1.5B checkpoint only exists on the machine
+              it was trained on. See the README&apos;s &quot;The Qwen2.5-1.5B track&quot; section for the exact command to
+              produce <code className="bg-white px-1 py-0.5 rounded border border-zinc-200">ml/results_qwen_independent/benchmark.json</code>.
             </p>
           </div>
         )}

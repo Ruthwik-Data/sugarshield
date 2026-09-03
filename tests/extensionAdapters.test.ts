@@ -27,7 +27,7 @@ function loadExtensionScript(relPath: string, sandbox: { window: Record<string, 
 }
 
 describe('extension adapters/index.js — adapterUtils', () => {
-  const sandbox = { window: {} };
+  const sandbox: { window: Record<string, any> } = { window: {} };
   const SS = loadExtensionScript('src/adapters/index.js', sandbox);
 
   it('extracts text following an "Ingredients:" label', () => {
@@ -89,7 +89,7 @@ describe('extension adapters/index.js — adapterUtils', () => {
 });
 
 describe('extension lib/renderResult.js — risk color/label helpers', () => {
-  const sandbox = { window: {} };
+  const sandbox: { window: Record<string, any> } = { window: {} };
   const SS = loadExtensionScript('src/lib/renderResult.js', sandbox);
 
   it('maps every known risk level to a label and colors', () => {
