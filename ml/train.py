@@ -154,6 +154,15 @@ def main():
     ap.add_argument("--lora_alpha", type=int, default=16)
     ap.add_argument("--lora_dropout", type=float, default=0.05)
     ap.add_argument(
+        "--resume_from_checkpoint",
+        nargs="?",
+        const=True,
+        default=None,
+        help="Resume training after an interruption. Pass with no value to auto-resume from the latest "
+        "checkpoint-* subdir already in --output_dir (save_strategy=epoch keeps the most recent one), "
+        "or pass an explicit checkpoint directory path.",
+    )
+    ap.add_argument(
         "--lora_target_modules",
         default="q_proj,v_proj",
         help="Comma-separated module names. Qwen2.5 (LLaMA-style attention): q_proj,v_proj for a small "
@@ -276,7 +285,7 @@ def main():
         hardware = f"{platform.processor() or platform.machine()}, device={device}, dtype={dtype}"
 
     start = time.time()
-    train_result = trainer.train()
+    train_result = trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
     duration_s = time.time() - start
 
     eval_metrics = trainer.evaluate() if val_ds else {}
