@@ -52,8 +52,15 @@ def _escape_regex(s: str) -> str:
 
 
 # Pre-compile word-boundary regexes for every lexicon entry, longest-term-first.
+# A term like "confectioner's sugar" contains an apostrophe, but the tokens
+# being matched against have already gone through normalize_text (via
+# split_ingredients), which strips punctuation including apostrophes to a
+# space. Matching the *raw* term's regex against a normalized token can
+# never succeed in that case, silently disabling detection for every
+# lexicon entry with an apostrophe. Normalizing the term the same way
+# before compiling its regex keeps both sides in the same alphabet.
 _COMPILED = [
-    (entry, re.compile(r"\b" + _escape_regex(entry["term"]) + r"\b"))
+    (entry, re.compile(r"\b" + _escape_regex(normalize_text(entry["term"])) + r"\b"))
     for entry in LEXICON_BY_LENGTH
 ]
 

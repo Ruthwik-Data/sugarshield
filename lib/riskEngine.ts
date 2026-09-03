@@ -21,6 +21,7 @@
 
 import { LEXICON_BY_LENGTH, LexiconEntry, SugarCategory } from './lexicon';
 import { normalizeIngredients } from './normalizeIngredients';
+import { normalizeText } from './normalizeText';
 import { calculateConfidence, IngredientSource } from './confidence';
 
 export type RiskLevel = 'SAFE' | 'LOW' | 'MODERATE' | 'HIGH' | 'VERY_HIGH';
@@ -56,10 +57,23 @@ function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// A lexicon term like "confectioner's sugar" or "refiner's syrup" contains
+// an apostrophe, but the tokens being matched against have already gone
+// through normalizeText (via splitIngredients), which strips punctuation
+// including apostrophes to a space. Matching the *raw* term's regex against
+// a normalized token can never succeed in that case, silently disabling
+// detection for every lexicon entry with an apostrophe. Normalizing the
+// term the same way before compiling its regex keeps both sides in the
+// same alphabet. Pre-compiled once at module load, longest-term-first, to
+// avoid rebuilding a RegExp per token per lexicon entry on every call.
+const COMPILED_LEXICON: { entry: LexiconEntry; re: RegExp }[] = LEXICON_BY_LENGTH.map((entry) => ({
+  entry,
+  re: new RegExp(`\\b${escapeRegex(normalizeText(entry.term))}\\b`),
+}));
+
 /** Finds the single longest (most specific) lexicon entry matching a token. */
 function matchToken(token: string): LexiconEntry | undefined {
-  for (const entry of LEXICON_BY_LENGTH) {
-    const re = new RegExp(`\\b${escapeRegex(entry.term)}\\b`);
+  for (const { entry, re } of COMPILED_LEXICON) {
     if (re.test(token)) return entry;
   }
   return undefined;

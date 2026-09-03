@@ -117,7 +117,10 @@ const SYRUPS: LexiconEntry[] = [
   { term: 'agave nectar', canonical: 'agave syrup', reason: 'Concentrated syrup from agave, very high in fructose.', category: 'added_sugar', subcategory: 'syrup' },
   { term: 'blue agave syrup', canonical: 'agave syrup', reason: 'Concentrated syrup from agave, very high in fructose.', category: 'added_sugar', subcategory: 'syrup' },
   { term: 'molasses', canonical: 'molasses', reason: 'Byproduct of refining sugar cane or beets.', category: 'added_sugar', subcategory: 'syrup' },
+  { term: 'molasse', canonical: 'molasses', reason: 'Byproduct of refining sugar cane or beets (singular/regional spelling seen on real ingredient labels).', category: 'added_sugar', subcategory: 'syrup' },
   { term: 'blackstrap molasses', canonical: 'molasses', reason: 'Concentrated sugar-cane byproduct.', category: 'added_sugar', subcategory: 'syrup' },
+  { term: 'molasses powder', canonical: 'molasses powder', reason: 'Dried/powdered molasses used as a sweetener.', category: 'added_sugar', subcategory: 'syrup' },
+  { term: 'molasse powder', canonical: 'molasses powder', reason: 'Dried/powdered molasses used as a sweetener (singular spelling variant).', category: 'added_sugar', subcategory: 'syrup' },
   { term: 'cane syrup', canonical: 'cane syrup', reason: 'Syrup made by boiling down sugar cane juice.', category: 'added_sugar', subcategory: 'syrup' },
   { term: 'sorghum syrup', canonical: 'sorghum syrup', reason: 'Added sugar syrup from sorghum cane.', category: 'added_sugar', subcategory: 'syrup' },
   { term: 'sorghum molasses', canonical: 'sorghum syrup', reason: 'Added sugar syrup from sorghum cane.', category: 'added_sugar', subcategory: 'syrup' },
@@ -173,6 +176,17 @@ const FRUIT_CONCENTRATE_SWEETENERS: LexiconEntry[] = [
   { term: 'white grape juice concentrate', canonical: 'white grape juice concentrate', reason: 'Concentrated fruit sugar used as a hidden sweetener.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'pineapple juice concentrate', canonical: 'pineapple juice concentrate', reason: 'Concentrated fruit sugar used as a hidden sweetener.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'pear puree concentrate', canonical: 'pear juice concentrate', reason: 'Concentrated fruit sugar used as a hidden sweetener/binder.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
+  // Generic fallbacks: real ingredient labels name dozens of specific fruits
+  // ("black carrot juice concentrate", "cranberry juice concentrate", ...)
+  // that can't all be enumerated. These generic terms are shorter than
+  // every specific "<fruit> juice concentrate" entry above, and matchToken
+  // tries longest-term-first, so a specific entry still wins when present —
+  // this only catches fruits not explicitly listed.
+  { term: 'juice concentrate', canonical: 'fruit juice concentrate', reason: 'Concentrated fruit sugar with fiber removed, functions like added sugar (generic fallback for a fruit not individually listed).', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
+  { term: 'juice from concentrate', canonical: 'fruit juice concentrate', reason: 'Reconstituted concentrated fruit sugar (generic fallback for a fruit not individually listed).', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
+  { term: 'raisin juice', canonical: 'fruit juice concentrate', reason: 'Concentrated dried-grape sugar used as a hidden sweetener.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
+  { term: 'date paste', canonical: 'date paste', reason: 'Whole-date paste used as a concentrated added sweetener.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
+  { term: 'fig paste', canonical: 'fig paste', reason: 'Whole-fig paste used as a concentrated added sweetener.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'cane juice', canonical: 'evaporated cane juice', reason: 'Marketing name for added cane sugar.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'evaporated cane juice', canonical: 'evaporated cane juice', reason: 'Regulatory-flagged rebrand of added cane sugar.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'dehydrated cane juice', canonical: 'evaporated cane juice', reason: 'Rebrand of added cane sugar.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },

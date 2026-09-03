@@ -62,15 +62,53 @@ FOODS_CSV = os.path.join(CLONE_DIR, "data", "GroceryDB_foods.csv")
 RAW_DIR = os.path.join(os.path.dirname(__file__), "..", "raw")
 os.makedirs(RAW_DIR, exist_ok=True)
 
+INDEPENDENT_GOLD_PATH = os.path.join(os.path.dirname(__file__), "..", "independent_gold", "independent_gold.jsonl")
+
+
+def load_independent_gold_original_ids():
+    """The 132-record independent benchmark must stay frozen and never be
+    trained on (see data/independent_gold/README.md). Its labels were
+    derived manually specifically so it could serve as a blind test set --
+    pulling any of its underlying GroceryDB products into train/validation
+    would quietly destroy that. Excluded here, at the source, rather than
+    relying on catching it after the fact in detect_leakage.py."""
+    if not os.path.exists(INDEPENDENT_GOLD_PATH):
+        return set()
+    ids = set()
+    with open(INDEPENDENT_GOLD_PATH, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            if rec.get("source") == "grocerydb" and rec.get("source_product_id"):
+                ids.add(rec["source_product_id"])
+    return ids
+
 # Per-category cap on how many joined+cleaned records we keep. "other" gets a
 # modest allocation too, for diversity, but is capped low so it can't dominate.
+#
+# Fine-tune V2 (Loop 2): raised substantially from v1's caps (all 60-140) to
+# grow the training pool from ~1,300 toward the 5,000-20,000 target range.
+# Categories tied to Loop 1's observed failure buckets get extra weight:
+# sugar_free/artificially_sweetened (the "artificial sweetener only = SAFE"
+# calibration gap -- 7 of 9 independent-benchmark false positives), juice
+# and natural_sugar (fruit-concentrate/dried-fruit-paste natural-vs-added
+# ambiguity), healthy_marketed (misleading-claims cases).
 CAPS = {
-    "soda": 110, "juice": 110, "cereal": 110, "protein_bar": 90, "yogurt": 110,
-    "sauce": 110, "snack": 130, "dessert": 140, "bread": 90, "breakfast": 90,
-    "protein_product": 90, "kids_food": 90, "healthy_marketed": 60,
-    "sugar_free": 60, "artificially_sweetened": 60, "natural_sugar": 110,
-    "other": 90,
+    "soda": 600, "juice": 700, "cereal": 600, "protein_bar": 350, "yogurt": 600,
+    "sauce": 600, "snack": 700, "dessert": 700, "bread": 500, "breakfast": 500,
+    "protein_product": 500, "kids_food": 350, "healthy_marketed": 400,
+    "sugar_free": 400, "artificially_sweetened": 400, "natural_sugar": 700,
+    "other": 400,
 }
+# NOTE: healthy_marketed / sugar_free / artificially_sweetened always fetch 0
+# here -- classify_grocerydb_category() (above) never assigns those three;
+# they're only assigned later by grocerydb_common.refine_category_post_label()
+# in label_records.py, once sugar/sweetener content is actually known. Their
+# CAPS entries are harmless no-ops at fetch time, kept only so the per-category
+# bucket exists; getting more of them means raising the *source* categories
+# they get refined from (soda/juice/snack/other/etc., raised above), not these.
 
 
 def ensure_source():
@@ -116,10 +154,13 @@ def to_float(s):
 def main():
     ensure_source()
     ing_index = load_ingredients_index()
+    excluded_oids = load_independent_gold_original_ids()
+    print(f"[fetch] excluding {len(excluded_oids)} GroceryDB original_ids already used by the frozen independent benchmark", file=sys.stderr)
 
     buckets = {cat: [] for cat in CAPS}
     scanned = 0
     joined = 0
+    excluded_hits = 0
 
     with open(FOODS_CSV, newline="", encoding="utf-8", errors="replace") as f:
         reader = csv.reader(f)
@@ -131,6 +172,9 @@ def main():
                 continue
             oid, name, store, harmonized_category, brand = row[0], row[1], row[2], row[3], row[4]
             if not oid or not name:
+                continue
+            if oid in excluded_oids:
+                excluded_hits += 1
                 continue
 
             ing_rec = ing_index.get(oid)
@@ -209,7 +253,8 @@ def main():
     with open(os.path.join(RAW_DIR, "manifest.json"), "w") as fh:
         json.dump(manifest, fh, indent=2)
 
-    print(f"\n[fetch] TOTAL joined+kept (pre-clean): {joined}", file=sys.stderr)
+    print(f"\n[fetch] excluded (already in frozen independent benchmark): {excluded_hits}", file=sys.stderr)
+    print(f"[fetch] TOTAL joined+kept (pre-clean): {joined}", file=sys.stderr)
 
 
 if __name__ == "__main__":

@@ -76,7 +76,10 @@ SYRUPS = [
     ("agave nectar", "agave syrup", "Concentrated syrup from agave, very high in fructose."),
     ("blue agave syrup", "agave syrup", "Concentrated syrup from agave, very high in fructose."),
     ("molasses", "molasses", "Byproduct of refining sugar cane or beets."),
+    ("molasse", "molasses", "Byproduct of refining sugar cane or beets (singular/regional spelling seen on real ingredient labels)."),
     ("blackstrap molasses", "molasses", "Concentrated sugar-cane byproduct."),
+    ("molasses powder", "molasses powder", "Dried/powdered molasses used as a sweetener."),
+    ("molasse powder", "molasses powder", "Dried/powdered molasses used as a sweetener (singular spelling variant)."),
     ("cane syrup", "cane syrup", "Syrup made by boiling down sugar cane juice."),
     ("sorghum syrup", "sorghum syrup", "Added sugar syrup from sorghum cane."),
     ("sorghum molasses", "sorghum syrup", "Added sugar syrup from sorghum cane."),
@@ -123,6 +126,18 @@ FRUIT_CONCENTRATE_SWEETENERS = [
     ("white grape juice concentrate", "white grape juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
     ("pineapple juice concentrate", "pineapple juice concentrate", "Concentrated fruit sugar used as a hidden sweetener."),
     ("pear puree concentrate", "pear juice concentrate", "Concentrated fruit sugar used as a hidden sweetener/binder."),
+    # Generic fallbacks: real ingredient labels name dozens of specific
+    # fruits ("black carrot juice concentrate", "cranberry juice
+    # concentrate", ...) that can't all be enumerated. These generic terms
+    # are shorter than every specific "<fruit> juice concentrate" entry
+    # above, and LEXICON_BY_LENGTH tries longest-term-first, so a specific
+    # entry still wins when present -- this only catches fruits not
+    # individually listed.
+    ("juice concentrate", "fruit juice concentrate", "Concentrated fruit sugar with fiber removed, functions like added sugar (generic fallback for a fruit not individually listed)."),
+    ("juice from concentrate", "fruit juice concentrate", "Reconstituted concentrated fruit sugar (generic fallback for a fruit not individually listed)."),
+    ("raisin juice", "fruit juice concentrate", "Concentrated dried-grape sugar used as a hidden sweetener."),
+    ("date paste", "date paste", "Whole-date paste used as a concentrated added sweetener."),
+    ("fig paste", "fig paste", "Whole-fig paste used as a concentrated added sweetener."),
     ("cane juice", "evaporated cane juice", "Marketing name for added cane sugar."),
     ("evaporated cane juice", "evaporated cane juice", "Regulatory-flagged rebrand of added cane sugar."),
     ("dehydrated cane juice", "evaporated cane juice", "Rebrand of added cane sugar."),

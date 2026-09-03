@@ -60,6 +60,31 @@ describe('riskEngine — never drops a known sugar term (false-negative protecti
   });
 });
 
+describe('riskEngine — Loop 1 regression: lexicon terms containing an apostrophe', () => {
+  it('detects "confectioner\'s sugar" (apostrophe stripped by normalizeText before matching)', () => {
+    const result = analyzeIngredientsText("Confectioner's sugar, water, vanilla extract.");
+    expect(result.detectedSugars).toContain('powdered sugar');
+  });
+
+  it('detects "refiner\'s syrup" the same way', () => {
+    const result = analyzeIngredientsText("Golden Syrup (Partially Inverted Refiner's Syrup).");
+    expect(result.detectedSugars).toContain('treacle');
+  });
+});
+
+describe('riskEngine — Loop 1 regression: generic fruit-juice-concentrate fallback', () => {
+  it('flags a specific fruit juice concentrate not individually enumerated in the lexicon', () => {
+    const result = analyzeIngredientsText('Water, Black Carrot Juice Concentrate, Citric Acid.');
+    expect(result.detectedSugars).toContain('fruit juice concentrate');
+    expect(result.containsHiddenSugar).toBe(true);
+  });
+
+  it('flags "juice from concentrate" phrasing for a fruit not individually enumerated', () => {
+    const result = analyzeIngredientsText('Cranberry Juice, Water, Grape Juice From Concentrate.');
+    expect(result.detectedSugars).toContain('fruit juice concentrate');
+  });
+});
+
 describe('riskEngine — strict vs lenient', () => {
   it('weighs debated ingredients (stevia) less heavily in lenient mode than strict mode', () => {
     const ingredients = 'Filtered Water, Organic Stevia Leaf Extract, Natural Flavors.';
