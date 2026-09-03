@@ -85,3 +85,7 @@
 .sugarshield-panel .ss-loading,
 .sugarshield-panel .ss-error { font-size: 12px; padding: 10px 0; }
 .sugarshield-panel .ss-error { color: #b91c1c; }
+.sugarshield-panel .ss-ingredients-block { margin: 10px 0; }
+.sugarshield-panel .ss-ingredients-text { font-size: 11px; line-height: 1.5; color: #4b5563; margin: 2px 0 0; }
+.sugarshield-panel .ss-ing-sugar { font-weight: 600; color: #b91c1c; background: #fef2f2; border-radius: 3px; padding: 0 1px; }
+.sugarshield-panel .ss-ing-sweetener { font-weight: 600; color: #7e22ce; background: #faf5ff; border-radius: 3px; padding: 0 1px; }

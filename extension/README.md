@@ -15,7 +15,10 @@ It has two ways to work:
    off the page and analyze it automatically. If it finds something, a
    small floating badge appears in the bottom-right corner; click it for
    the full result. If it can't find an ingredients list, nothing is
-   shown — no badge clutter on pages SugarShield can't actually read.
+   shown on the page itself — no badge clutter on pages SugarShield can't
+   actually read. Opening the popup on such a page instead shows a plain
+   "couldn't auto-detect ingredients here" message pointing at the manual
+   form, rather than leaving you guessing why nothing happened.
 
 ## Structure (MV3)
 

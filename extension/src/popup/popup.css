@@ -119,6 +119,10 @@ body {
   background: #fef2f2;
   color: #b91c1c;
 }
+.ss-status--info {
+  background: #f3f4f6;
+  color: #374151;
+}
 
 .ss-footer {
   padding: 6px 16px 12px;
@@ -145,3 +149,7 @@ body {
 .ss-meta { font-size: 11px; color: #9ca3af; margin-top: 8px; border-top: 1px solid #e5e7eb; padding-top: 6px; }
 .ss-loading, .ss-error { font-size: 13px; padding: 10px 0; }
 .ss-error { color: #b91c1c; }
+.ss-ingredients-block { margin: 10px 0; }
+.ss-ingredients-text { font-size: 12px; line-height: 1.5; color: #4b5563; margin: 2px 0 0; }
+.ss-ing-sugar { font-weight: 600; color: #b91c1c; background: #fef2f2; border-radius: 3px; padding: 0 1px; }
+.ss-ing-sweetener { font-weight: 600; color: #7e22ce; background: #faf5ff; border-radius: 3px; padding: 0 1px; }

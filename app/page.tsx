@@ -28,6 +28,26 @@ export default function Home() {
 
         <Onboarding />
 
+        {/* PRIMARY SURFACE CALLOUT: the Chrome extension is where SugarShield
+            is meant to be used — at the shelf or while shopping online, not
+            by copy-pasting into a web page. This app is the manual
+            analyzer, benchmark dashboard, and technical-transparency layer
+            behind it, sharing the same /api/analyze contract. */}
+        <section className="bg-cocoa/5 border border-cocoa/15 rounded-2xl p-5 shadow-sm space-y-2">
+          <p className="text-xs font-semibold text-cocoa uppercase tracking-wider">Best used as a Chrome extension</p>
+          <p className="text-sm text-zinc-600 leading-relaxed">
+            SugarShield&apos;s primary surface is a Chrome extension that scans product pages on Amazon, Walmart, and
+            Target automatically while you shop, plus a manual paste-and-analyze form that works anywhere. This web
+            app is the secondary surface — a manual analyzer, the benchmark dashboard, and the technical-transparency
+            record behind the same detection engine.
+          </p>
+          <p className="text-xs text-zinc-500 leading-relaxed">
+            Not yet on the Chrome Web Store — load it unpacked in two minutes: <code className="bg-white px-1 py-0.5 rounded border border-zinc-200">chrome://extensions</code> →
+            enable Developer mode → Load unpacked → select the <code className="bg-white px-1 py-0.5 rounded border border-zinc-200">extension/</code> folder.
+            Full steps in <code className="bg-white px-1 py-0.5 rounded border border-zinc-200">extension/README.md</code>.
+          </p>
+        </section>
+
         {/* 1. PROBLEM → 2. VALUE PROP → 3. HEADLINE */}
         <section className="bg-white border border-zinc-100 rounded-2xl p-5 shadow-sm space-y-4">
           <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">The problem</p>

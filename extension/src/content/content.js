@@ -126,7 +126,7 @@
     panel.appendChild(body);
 
     document.body.appendChild(panel);
-    SS.resultView.render(body, result, { productName: extracted.productName });
+    SS.resultView.render(body, result, { productName: extracted.productName, ingredientsText: extracted.ingredients });
   }
 
   if (document.readyState === 'complete' || document.readyState === 'interactive') {

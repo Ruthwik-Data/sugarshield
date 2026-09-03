@@ -55,7 +55,7 @@
         mode,
       });
       setStatus('', null);
-      SS.resultView.render(resultEl, result, { productName });
+      SS.resultView.render(resultEl, result, { productName, ingredientsText: ingredients });
       showForm(false);
       newBtn.hidden = false;
     } catch (err) {
@@ -86,33 +86,50 @@
     }
   }
 
+  const SUPPORTED_SITE_RE = /(^|\.)(amazon|walmart|target)\./i;
+
+  /** True if `url`'s host is one of the three sites the extension can auto-scan. */
+  function isSupportedSite(url) {
+    try {
+      return SUPPORTED_SITE_RE.test(new URL(url).hostname);
+    } catch (err) {
+      return false;
+    }
+  }
+
   // If a content script on the active tab already analyzed the page (badge
   // click, or simply the most recently visited product page), show that
-  // result immediately instead of an empty form.
+  // result immediately instead of an empty form. If the active tab is a
+  // supported retailer but nothing was auto-detected there, say so plainly
+  // instead of leaving the user guessing why nothing appeared (Part 6-10:
+  // clean "unavailable" messaging, never silent failure on a page we claim
+  // to support).
   async function tryShowLastResult() {
+    const activeUrl = await getActiveTabUrl();
+
     try {
       const stored = await chrome.storage.local.get('sugarshieldLastResult');
       const last = stored && stored.sugarshieldLastResult;
-      if (!last || !last.result) return;
+      const fresh = last && last.result && Date.now() - (last.at || 0) <= 30 * 60 * 1000;
+      // Prefer to only auto-show the result if it matches the tab the user is looking at.
+      const matchesActiveTab = !activeUrl || !last || !last.url || activeUrl === last.url;
 
-      // Ignore stale results (older than 30 minutes) so a long-closed tab's
-      // data doesn't resurface unexpectedly.
-      if (Date.now() - (last.at || 0) > 30 * 60 * 1000) return;
+      if (fresh && matchesActiveTab) {
+        if (last.productName) nameInput.value = last.productName;
+        if (last.ingredients) ingredientsInput.value = last.ingredients;
 
-      // Prefer to only auto-show the result if it matches the tab the user
-      // is currently looking at.
-      const activeUrl = await getActiveTabUrl();
-      if (activeUrl && last.url && activeUrl !== last.url) return;
-
-      if (last.productName) nameInput.value = last.productName;
-      if (last.ingredients) ingredientsInput.value = last.ingredients;
-
-      setStatus('', null);
-      SS.resultView.render(resultEl, last.result, { productName: last.productName });
-      showForm(false);
-      newBtn.hidden = false;
+        setStatus('', null);
+        SS.resultView.render(resultEl, last.result, { productName: last.productName, ingredientsText: last.ingredients });
+        showForm(false);
+        newBtn.hidden = false;
+        return;
+      }
     } catch (err) {
-      // No stored result, or storage unavailable -- just show the empty form.
+      // Storage unavailable -- fall through to the plain empty-form state below.
+    }
+
+    if (activeUrl && isSupportedSite(activeUrl)) {
+      setStatus("Couldn't automatically find an ingredients list on this page. Paste it below instead.", 'info');
     }
   }
 
