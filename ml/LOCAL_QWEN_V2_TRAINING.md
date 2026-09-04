@@ -92,6 +92,23 @@ Config choices and why:
   reproducibility.
 - **`--gradient_checkpointing`** — trades compute for memory, recommended
   on Mac for a rank-16, broader-target-modules LoRA run.
+- **`--use_rslora`** — rank-stabilized LoRA, already supported by the
+  `peft` version already in `requirements.txt` (just not previously wired
+  into this script's flags). Scales `lora_alpha` by `1/sqrt(r)` instead of
+  `1/r`, which tends to help a higher-rank adapter like this one (`r=16`)
+  train more stably. See `TOOLING_DECISION.md` for why this and `--use_dora`
+  were added instead of migrating to a different training framework.
+
+**If you already tried running this and hit ~250+ seconds/step (a multi-day
+projected runtime)**: that was a real bug, now fixed — `Trainer`/
+`Accelerate` were silently overriding the model's device placement back to
+CPU regardless of `--device mps`/`auto`, the same class of bug already
+fixed once in `evaluate.py`. `git pull` to pick up the fix before
+re-running; the log will now print a line like
+`[train] requested device='mps', Trainer resolved args.device=device(type='mps')`
+right before training starts — confirm those two agree (a `MISMATCH`
+line means something is still off, and the model gets force-placed
+correctly regardless either way).
 
 Run it resumably, logged to a file, in the background:
 
@@ -101,7 +118,7 @@ nohup python3 train.py \
   --output_dir ./checkpoints/sugarshield-qwen-v2-run1 \
   --use_lora --base_model Qwen/Qwen2.5-1.5B-Instruct \
   --device auto --dtype auto --gradient_checkpointing \
-  --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
+  --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 --use_rslora \
   --lora_target_modules q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj \
   --epochs 3 --batch_size 4 --grad_accum 4 --seq_len 320 --seed 42 \
   --results_dir ./results_qwen_v2_run1 \
@@ -128,7 +145,7 @@ nohup python3 train.py \
   --output_dir ./checkpoints/sugarshield-qwen-v2-run1 \
   --use_lora --base_model Qwen/Qwen2.5-1.5B-Instruct \
   --device auto --dtype auto --gradient_checkpointing \
-  --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
+  --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 --use_rslora \
   --lora_target_modules q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj \
   --epochs 3 --batch_size 4 --grad_accum 4 --seq_len 320 --seed 42 \
   --results_dir ./results_qwen_v2_run1 \

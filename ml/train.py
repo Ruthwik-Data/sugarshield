@@ -154,6 +154,20 @@ def main():
     ap.add_argument("--lora_alpha", type=int, default=16)
     ap.add_argument("--lora_dropout", type=float, default=0.05)
     ap.add_argument(
+        "--use_rslora",
+        action="store_true",
+        help="Rank-stabilized LoRA (peft's LoraConfig.use_rslora) -- scales lora_alpha by 1/sqrt(r) instead of "
+        "1/r, which tends to help higher-rank adapters (e.g. r=16+) train more stably.",
+    )
+    ap.add_argument(
+        "--use_dora",
+        action="store_true",
+        help="Weight-Decomposed LoRA (peft's LoraConfig.use_dora) -- decomposes each adapted weight into "
+        "magnitude + direction, closer to full fine-tuning behavior at a small additional compute cost. "
+        "Both flags are already supported by the peft>=0.10 dependency already pinned in requirements.txt; "
+        "no new library needed.",
+    )
+    ap.add_argument(
         "--resume_from_checkpoint",
         nargs="?",
         const=True,
@@ -220,10 +234,12 @@ def main():
             bias="none",
             task_type="CAUSAL_LM",
             target_modules=lora_target_modules,
+            use_rslora=args.use_rslora,
+            use_dora=args.use_dora,
         )
         model = get_peft_model(model, lora_cfg)
         model.print_trainable_parameters()
-        method = "lora"
+        method = "lora" + ("+rslora" if args.use_rslora else "") + ("+dora" if args.use_dora else "")
         base_model_name = args.base_model
     else:
         tokenizer_dir = os.path.join(args.prepared_dir, "tokenizer")
@@ -279,6 +295,21 @@ def main():
         eval_dataset=val_ds,
     )
 
+    # HF Trainer/Accelerate compute their OWN device placement internally
+    # from `training_args`, independent of the `model.to(device)` call
+    # already done above -- on some transformers/accelerate version
+    # combinations this silently resolves to CPU even when MPS/CUDA is
+    # available and was explicitly requested, which is exactly what turned
+    # a several-minutes-per-epoch LoRA run into a 250+ seconds/step,
+    # 80+ hour one with no error at all. Log what Trainer actually resolved
+    # to, and force the model back onto the intended device if it disagrees
+    # -- cheap, harmless when they already agree, and makes this class of
+    # bug visible in the log instead of silent.
+    print(f"[train] requested device={device!r}, Trainer resolved args.device={trainer.args.device!r}", flush=True)
+    if str(trainer.args.device) != str(device):
+        print(f"[train] MISMATCH -- forcing the model back onto {device!r}", flush=True)
+    model.to(device)
+
     if device == "cpu":
         hardware = f"{platform.processor() or platform.machine()}, {os.cpu_count()} vCPUs, CPU-only (no GPU available)"
     else:
@@ -298,7 +329,7 @@ def main():
         "fine_tuning_method": method,
         "reason_not_lora_on_pretrained": (
             None
-            if method == "lora"
+            if "lora" in method
             else "Hugging Face Hub and every other reachable source of pretrained transformer "
             "weights returned a hard 403 policy denial from this environment's network egress "
             "proxy (huggingface.co, download.pytorch.org, etc). With no pretrained checkpoint "
@@ -316,14 +347,16 @@ def main():
         "effective_batch_size": args.batch_size * args.grad_accum,
         "learning_rate": args.lr,
         "sequence_length": args.seq_len,
-        "lora_rank": args.lora_r if method == "lora" else None,
-        "lora_alpha": args.lora_alpha if method == "lora" else None,
-        "lora_dropout": args.lora_dropout if method == "lora" else None,
+        "lora_rank": args.lora_r if "lora" in method else None,
+        "lora_alpha": args.lora_alpha if "lora" in method else None,
+        "lora_dropout": args.lora_dropout if "lora" in method else None,
+        "lora_use_rslora": args.use_rslora if "lora" in method else None,
+        "lora_use_dora": args.use_dora if "lora" in method else None,
         "device": device,
         "dtype": str(dtype),
         "quantization": "none",
-        "target_modules": "n/a (full-parameter training)" if method != "lora" else ",".join(lora_target_modules),
-        "gradient_checkpointing": bool(args.gradient_checkpointing) if method == "lora" else False,
+        "target_modules": "n/a (full-parameter training)" if "lora" not in method else ",".join(lora_target_modules),
+        "gradient_checkpointing": bool(args.gradient_checkpointing) if "lora" in method else False,
         "random_seed": args.seed,
         "hardware": hardware,
         "train_runtime_seconds": round(duration_s, 1),
