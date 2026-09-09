@@ -186,6 +186,7 @@ const FRUIT_CONCENTRATE_SWEETENERS: LexiconEntry[] = [
   { term: 'juice from concentrate', canonical: 'fruit juice concentrate', reason: 'Reconstituted concentrated fruit sugar (generic fallback for a fruit not individually listed).', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'raisin juice', canonical: 'fruit juice concentrate', reason: 'Concentrated dried-grape sugar used as a hidden sweetener.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'date paste', canonical: 'date paste', reason: 'Whole-date paste used as a concentrated added sweetener.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
+  { term: 'date powder', canonical: 'date powder', reason: 'Fiber-reduced concentrated date sugar used as a sweetener, not whole-fruit fiber-intact date.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'fig paste', canonical: 'fig paste', reason: 'Whole-fig paste used as a concentrated added sweetener.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'cane juice', canonical: 'evaporated cane juice', reason: 'Marketing name for added cane sugar.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },
   { term: 'evaporated cane juice', canonical: 'evaporated cane juice', reason: 'Regulatory-flagged rebrand of added cane sugar.', category: 'hidden_sugar', subcategory: 'fruit_concentrate_sweetener' },

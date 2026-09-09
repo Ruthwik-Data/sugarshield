@@ -137,6 +137,7 @@ FRUIT_CONCENTRATE_SWEETENERS = [
     ("juice from concentrate", "fruit juice concentrate", "Reconstituted concentrated fruit sugar (generic fallback for a fruit not individually listed)."),
     ("raisin juice", "fruit juice concentrate", "Concentrated dried-grape sugar used as a hidden sweetener."),
     ("date paste", "date paste", "Whole-date paste used as a concentrated added sweetener."),
+    ("date powder", "date powder", "Fiber-reduced concentrated date sugar used as a sweetener, not whole-fruit fiber-intact date."),
     ("fig paste", "fig paste", "Whole-fig paste used as a concentrated added sweetener."),
     ("cane juice", "evaporated cane juice", "Marketing name for added cane sugar."),
     ("evaporated cane juice", "evaporated cane juice", "Regulatory-flagged rebrand of added cane sugar."),
